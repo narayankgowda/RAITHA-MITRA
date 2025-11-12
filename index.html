@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agri-AI Pest & Disease Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                light: '#22c55e', // green-500
+                DEFAULT: '#16a34a', // green-600
+                dark: '#15803d', // green-700
+              },
+              secondary: '#f97316', // orange-500
+              background: {
+                light: '#f8fafc', // slate-50
+                dark: '#0f172a' // slate-900
+              },
+              text: {
+                light: '#0f172a', // slate-900
+                dark: '#f1f5f9' // slate-100
+              },
+              card: {
+                light: '#ffffff',
+                dark: '#1e293b' // slate-800
+              },
+              border: {
+                  light: '#e2e8f0', // slate-200
+                  dark: '#334155' // slate-700
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
+    "i18next": "https://aistudiocdn.com/i18next@^23.11.5",
+    "react-i18next": "https://aistudiocdn.com/react-i18next@^14.1.2",
+    "i18next-browser-languageDetector": "https://aistudiocdn.com/i18next-browser-languagedetector@^8.0.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-background-light dark:bg-background-dark transition-colors duration-300">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

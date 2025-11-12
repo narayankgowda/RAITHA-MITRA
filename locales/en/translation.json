@@ -1,0 +1,70 @@
+{
+  "header": {
+    "language": "Language"
+  },
+  "landing": {
+    "title": "Welcome to Agri-AI",
+    "subtitle": "Your all-in-one platform for modern agriculture. Please select your role to continue.",
+    "farmer": {
+      "title": "Farmer",
+      "description": "Access AI tools, manage your herd, monitor crops, and get expert advice.",
+      "button": "Login as Farmer"
+    },
+    "buyer": {
+      "title": "Buyer",
+      "description": "Explore the marketplace, find fresh produce, and place orders directly from farms.",
+      "button": "Login as Buyer"
+    },
+    "admin": {
+      "title": "Admin",
+      "description": "Manage the platform, view analytics, and oversee operations.",
+      "button": "Login as Admin"
+    }
+  },
+  "login": {
+    "back": "Back",
+    "usernameLabel": "Username",
+    "passwordLabel": "Password",
+    "loginButton": "Login",
+    "farmer": {
+      "title": "Farmer Portal",
+      "subtitle": "Access your farm dashboard"
+    },
+    "buyer": {
+      "title": "Buyer Portal",
+      "subtitle": "Explore the Agri-Produce Marketplace"
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "subtitle": "Platform Management"
+    }
+  },
+  "dashboard": {
+    "farmer": {
+      "title": "Farmer Dashboard",
+      "nav": {
+        "dashboard": "Dashboard",
+        "pestDetector": "Pest Detector",
+        "soilAnalysis": "Soil Analysis",
+        "marketplace": "Marketplace",
+        "mandiLocator": "Mandi Locator",
+        "animalHusbandry": "Animal Husbandry",
+        "aiVet": "AI Vet Assistant",
+        "vetConnect": "Vet Connect",
+        "expertHelpline": "Expert Helpline",
+        "cropMonitoring": "Crop Monitoring",
+        "weather": "Weather",
+        "schemes": "Govt. Schemes",
+        "chatbot": "Chatbot",
+        "profile": "My Profile",
+        "portfolio": "My Portfolio"
+      }
+    },
+    "buyer": {
+      "title": "Buyer Marketplace"
+    },
+    "admin": {
+      "title": "Admin Panel"
+    }
+  }
+}

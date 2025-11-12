@@ -1,0 +1,7 @@
+{
+  "name": "Agri-AI Platform",
+  "description": "An all-in-one platform for farmers, buyers, and administrators in the agricultural sector. Features AI-powered tools, a marketplace, herd management, and administrative dashboards.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

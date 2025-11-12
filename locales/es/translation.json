@@ -1,0 +1,70 @@
+{
+  "header": {
+    "language": "Idioma"
+  },
+  "landing": {
+    "title": "Bienvenido a Agri-AI",
+    "subtitle": "Su plataforma todo en uno para la agricultura moderna. Seleccione su rol para continuar.",
+    "farmer": {
+      "title": "Agricultor",
+      "description": "Acceda a herramientas de IA, gestione su rebaño, supervise cultivos y obtenga asesoramiento de expertos.",
+      "button": "Iniciar sesión como Agricultor"
+    },
+    "buyer": {
+      "title": "Comprador",
+      "description": "Explore el mercado, encuentre productos frescos y realice pedidos directamente desde las granjas.",
+      "button": "Iniciar sesión como Comprador"
+    },
+    "admin": {
+      "title": "Administrador",
+      "description": "Gestione la plataforma, vea análisis y supervise las operaciones.",
+      "button": "Iniciar sesión como Administrador"
+    }
+  },
+  "login": {
+    "back": "Atrás",
+    "usernameLabel": "Nombre de usuario",
+    "passwordLabel": "Contraseña",
+    "loginButton": "Iniciar sesión",
+    "farmer": {
+      "title": "Portal del Agricultor",
+      "subtitle": "Acceda al panel de su granja"
+    },
+    "buyer": {
+      "title": "Portal del Comprador",
+      "subtitle": "Explore el Mercado de Productos Agrícolas"
+    },
+    "admin": {
+      "title": "Panel de Administrador",
+      "subtitle": "Gestión de la Plataforma"
+    }
+  },
+  "dashboard": {
+    "farmer": {
+      "title": "Panel del Agricultor",
+      "nav": {
+        "dashboard": "Tablero",
+        "pestDetector": "Detector de Plagas",
+        "soilAnalysis": "Análisis de Suelo",
+        "marketplace": "Mercado",
+        "mandiLocator": "Localizador de Mandi",
+        "animalHusbandry": "Ganadería",
+        "aiVet": "Asistente Veterinario IA",
+        "vetConnect": "Conectar con Veterinario",
+        "expertHelpline": "Línea de Ayuda de Expertos",
+        "cropMonitoring": "Monitoreo de Cultivos",
+        "weather": "Clima",
+        "schemes": "Esquemas Gubernamentales",
+        "chatbot": "Chatbot",
+        "profile": "Mi Perfil",
+        "portfolio": "Mi Portafolio"
+      }
+    },
+    "buyer": {
+      "title": "Mercado para Compradores"
+    },
+    "admin": {
+      "title": "Panel de Administrador"
+    }
+  }
+}
