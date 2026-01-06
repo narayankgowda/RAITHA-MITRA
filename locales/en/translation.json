@@ -1,25 +1,20 @@
 {
+  "common": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Error",
+    "reset": "Reset",
+    "search": "Search...",
+    "upload": "Upload",
+    "clear": "Clear",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back"
+  },
   "header": {
     "language": "Language"
-  },
-  "landing": {
-    "title": "Welcome to Agri-AI",
-    "subtitle": "Your all-in-one platform for modern agriculture. Please select your role to continue.",
-    "farmer": {
-      "title": "Farmer",
-      "description": "Access AI tools, manage your herd, monitor crops, and get expert advice.",
-      "button": "Login as Farmer"
-    },
-    "buyer": {
-      "title": "Buyer",
-      "description": "Explore the marketplace, find fresh produce, and place orders directly from farms.",
-      "button": "Login as Buyer"
-    },
-    "admin": {
-      "title": "Admin",
-      "description": "Manage the platform, view analytics, and oversee operations.",
-      "button": "Login as Admin"
-    }
   },
   "login": {
     "back": "Back",
@@ -31,12 +26,8 @@
       "subtitle": "Access your farm dashboard"
     },
     "buyer": {
-      "title": "Buyer Portal",
-      "subtitle": "Explore the Agri-Produce Marketplace"
-    },
-    "admin": {
-      "title": "Admin Dashboard",
-      "subtitle": "Platform Management"
+        "title": "Buyer Portal",
+        "subtitle": "Source fresh produce directly"
     }
   },
   "dashboard": {
@@ -44,27 +35,56 @@
       "title": "Farmer Dashboard",
       "nav": {
         "dashboard": "Dashboard",
+        "community": "Community & Forums",
         "pestDetector": "Pest Detector",
         "soilAnalysis": "Soil Analysis",
+        "yieldPredictor": "Yield Predictor",
         "marketplace": "Marketplace",
-        "mandiLocator": "Mandi Locator",
+        "livePrices": "Live Market Prices",
+        "expenseTracker": "Expense Tracker",
         "animalHusbandry": "Animal Husbandry",
         "aiVet": "AI Vet Assistant",
         "vetConnect": "Vet Connect",
         "expertHelpline": "Expert Helpline",
         "cropMonitoring": "Crop Monitoring",
+        "cropRotation": "Crop Rotation",
         "weather": "Weather",
         "schemes": "Govt. Schemes",
         "chatbot": "Chatbot",
         "profile": "My Profile",
-        "portfolio": "My Portfolio"
-      }
-    },
-    "buyer": {
-      "title": "Buyer Marketplace"
-    },
-    "admin": {
-      "title": "Admin Panel"
+        "about": "About",
+        "resourceSharing": "Resource Sharing"
+      },
+       "home": {
+          "greeting_morning": "Good Morning",
+          "greeting_afternoon": "Good Afternoon",
+          "greeting_evening": "Good Evening"
+        },
+          "soilAnalysisPage": {
+            "calculatorTitle": "Fertilizer Calculator", "cropTypeLabel": "Crop Type", "farmAreaLabel": "Farm Area (in acres)", "targetYieldLabel": "Target Yield (quintals/acre)", "calculateButton": "Calculate Recommendations"
+          },
+          "cropMonitoring": {
+            "addTaskPlaceholder": "Add a new task..."
+          },
+          "keyMetrics": {
+            "herd": "Active Herd", "crops": "Monitored Crops", "tasks": "Pending Tasks", "market": "Market Trend"
+          },
+          "taskOverview": {
+            "title": "Task Overview"
+          }
     }
+  },
+  "resourceHub": {
+    "title": "Resource Sharing",
+    "subtitle": "Professional machinery, labor and logistics hub",
+    "aiAdvisor": "AI Resource Expert",
+    "verified": "Verified Partner",
+    "nearby": "Locally Active",
+    "activeListings": "Active Resources",
+    "contact": "Confirm Reservation",
+    "shareMine": "List My Resource"
+  },
+  "voiceAssistant": {
+    "title": "Raitha Mitra Voice Assistant", "intro": "Hello! I'm Raitha Mitra. How can I help you? Tap the button below to speak.", "listening": "Listening...", "connecting": "Connecting...", "speaking": "Raitha Mitra is speaking..."
   }
 }

@@ -1,3 +1,4 @@
+
 import React, { createContext, useReducer, ReactNode } from 'react';
 
 export interface Notification {
@@ -8,6 +9,7 @@ export interface Notification {
 
 interface NotificationState {
   notifications: Notification[];
+  count: number;
 }
 
 type NotificationAction =
@@ -16,6 +18,7 @@ type NotificationAction =
 
 const initialState: NotificationState = {
   notifications: [],
+  count: 0,
 };
 
 let nextId = 1;
@@ -23,14 +26,18 @@ let nextId = 1;
 const notificationReducer = (state: NotificationState, action: NotificationAction): NotificationState => {
   switch (action.type) {
     case 'ADD_NOTIFICATION':
+      const newNotifications = [...state.notifications, { ...action.payload, id: nextId++ }];
       return {
         ...state,
-        notifications: [...state.notifications, { ...action.payload, id: nextId++ }],
+        notifications: newNotifications,
+        count: newNotifications.length,
       };
     case 'REMOVE_NOTIFICATION':
+      const filteredNotifications = state.notifications.filter(n => n.id !== action.payload.id);
       return {
         ...state,
-        notifications: state.notifications.filter(n => n.id !== action.payload.id),
+        notifications: filteredNotifications,
+        count: filteredNotifications.length,
       };
     default:
       return state;

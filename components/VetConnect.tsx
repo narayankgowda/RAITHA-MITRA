@@ -1,90 +1,104 @@
+
 import React, { useState, useMemo } from 'react';
 import { vetData, Vet } from '../data/vetData';
-import { calculateDistance, Coordinates } from '../utils/locationUtils';
-import Spinner from './Spinner';
-import { MapPinIcon, PhoneIcon } from './icons';
-
-interface VetWithDistance extends Vet {
-    distance?: number;
-}
+import { MapPinIcon, StarIcon, SearchIcon, FilterIcon, PhoneIcon, MailIcon } from './icons';
+import { useNotifications } from '../hooks/useNotifications';
 
 const VetConnect: React.FC = () => {
-    const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
-    const [vets, setVets] = useState<VetWithDistance[]>(vetData);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { dispatch } = useNotifications();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCity, setSelectedCity] = useState('All');
 
-    const handleFindVets = () => {
-        setIsLoading(true);
-        setError(null);
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const location = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                    };
-                    setUserLocation(location);
-                    const vetsWithDist = vetData.map(vet => ({
-                        ...vet,
-                        distance: calculateDistance(location, vet.location),
-                    })).sort((a, b) => a.distance - b.distance);
-                    setVets(vetsWithDist);
-                    setIsLoading(false);
-                },
-                (err) => {
-                    setError(`Error getting location: ${err.message}. Please enable location services.`);
-                    setIsLoading(false);
-                }
-            );
-        } else {
-            setError('Geolocation is not supported by this browser.');
-            setIsLoading(false);
-        }
-    };
-    
+    const cities = useMemo(() => ['All', ...Array.from(new Set(vetData.map(v => v.city)))], []);
+
+    const filteredVets = useMemo(() => {
+        return vetData.filter(vet => {
+            const matchesSearch = vet.name.toLowerCase().includes(searchTerm.toLowerCase()) || vet.Designation.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCity = selectedCity === 'All' || vet.city === selectedCity;
+            return matchesSearch && matchesCity;
+        });
+    }, [searchTerm, selectedCity]);
+
     return (
-        <div>
-             <div className="text-center mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold">Connect with a Veterinarian</h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">Find qualified vets near you for professional animal care.</p>
+        <div className="space-y-8 max-w-7xl mx-auto">
+            <div className="text-center">
+                <h2 className="text-3xl md:text-4xl font-extrabold text-text-light dark:text-text-dark">Vet Connect</h2>
+                <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">Instant access to professional veterinary care for your livestock.</p>
             </div>
 
-            {!userLocation && (
-                <div className="text-center p-8">
-                     {isLoading ? (
-                        <Spinner />
-                    ) : (
-                        <button
-                            onClick={handleFindVets}
-                            className="flex items-center justify-center px-6 py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg shadow-md"
-                        >
-                            <MapPinIcon className="w-5 h-5 mr-2" />
-                            Find Vets Near Me
-                        </button>
-                    )}
-                    {error && <p className="text-red-500 mt-4">{error}</p>}
+            {/* Filters */}
+            <div className="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-border-light dark:border-border-dark flex flex-col md:flex-row gap-4 items-center">
+                <div className="relative flex-grow w-full md:w-auto">
+                    <SearchIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400"/>
+                    <input 
+                        type="text" 
+                        placeholder="Search by name or specialization..." 
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-light dark:border-border-dark bg-input-light dark:bg-input-dark focus:ring-2 focus:ring-primary outline-none"
+                    />
                 </div>
-            )}
+                <div className="relative w-full md:w-48">
+                    <FilterIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400"/>
+                    <select 
+                        value={selectedCity} 
+                        onChange={e => setSelectedCity(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-light dark:border-border-dark bg-input-light dark:bg-input-dark focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer"
+                    >
+                        {cities.map(city => <option key={city} value={city}>{city}</option>)}
+                    </select>
+                </div>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {vets.map(vet => (
-                    <div key={vet.id} className="bg-card-light dark:bg-card-dark rounded-lg shadow-md p-4 flex flex-col items-center text-center border border-border-light dark:border-border-dark">
-                        <img src={vet.image} alt={vet.name} className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-primary" />
-                        <h3 className="font-bold text-lg">{vet.name}</h3>
-                        <p className="text-sm text-primary dark:text-primary-light font-semibold">{vet.specialty}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{vet.city}</p>
-                        {vet.distance !== undefined && (
-                             <p className="text-xs font-bold my-2 bg-green-100 text-green-800 px-2 py-0.5 rounded-full">{vet.distance.toFixed(1)} km away</p>
-                        )}
-                        <div className="flex items-center mt-2">
-                             <span className='text-yellow-400'>★</span>
-                             <span className="text-sm font-semibold ml-1">{vet.rating}</span>
+            {/* Vet Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredVets.map(vet => (
+                    <div key={vet.id} className="bg-card-light dark:bg-card-dark rounded-xl shadow-md border border-border-light dark:border-border-dark overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
+                        <div className="p-6">
+                            <div className="flex gap-4">
+                                <img src={vet.image} alt={vet.name} className="w-20 h-20 rounded-full object-cover border-2 border-primary shadow-sm" />
+                                <div>
+                                    <h3 className="font-bold text-lg text-text-light dark:text-text-dark">{vet.name}</h3>
+                                    <p className="text-sm font-medium text-primary">{vet.Designation}</p>
+                                    <div className="flex items-center mt-1 text-xs text-gray-500">
+                                        <MapPinIcon className="w-3 h-3 mr-1"/> {vet.city}
+                                    </div>
+                                    <div className="flex items-center mt-1">
+                                        <StarIcon className="w-3 h-3 text-yellow-400 fill-current"/>
+                                        <span className="text-xs font-bold ml-1">{vet.rating}</span>
+                                        <span className="text-xs text-gray-400 ml-1">({vet.experience} Yrs Exp)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                <div className="flex justify-between border-b border-border-light dark:border-border-dark pb-2">
+                                    <span>Consultation Fee:</span>
+                                    <span className="font-bold">₹{vet.consultationFee}</span>
+                                </div>
+                                <div className="flex justify-between pt-1">
+                                    <span>Availability:</span>
+                                    <span className={`font-bold ${vet.availability === 'Available' ? 'text-green-600' : 'text-red-600'}`}>{vet.availability}</span>
+                                </div>
+                                <div className="text-xs text-gray-500 mt-2 italic">
+                                    Speaks: {vet.languages.join(', ')}
+                                </div>
+                            </div>
                         </div>
-                        <a href={`tel:${vet.phone}`} className="mt-4 w-full flex items-center justify-center py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                            <PhoneIcon className="w-4 h-4 mr-2" />
-                            {vet.phone}
-                        </a>
+
+                        <div className="p-4 bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Contact Details</h4>
+                            <div className="space-y-2">
+                                <div className="flex items-center text-sm font-medium text-text-light dark:text-text-dark">
+                                    <PhoneIcon className="w-4 h-4 mr-2 text-green-600"/>
+                                    {vet.phone}
+                                </div>
+                                <div className="flex items-center text-sm font-medium text-text-light dark:text-text-dark">
+                                    <MailIcon className="w-4 h-4 mr-2 text-blue-600"/>
+                                    {vet.email}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>

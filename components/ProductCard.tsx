@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Product } from '../data/products';
 import { useCart } from '../hooks/useCart';
@@ -30,41 +31,64 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         let stars = [];
         for (let i = 1; i <= 5; i++) {
             stars.push(
-                <span key={i} className={i <= product.rating ? 'text-yellow-400' : 'text-gray-300'}>★</span>
+                <span key={i} className={i <= product.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}>★</span>
             );
         }
         return stars;
     };
 
-
   return (
-    <div className="bg-background-light dark:bg-slate-800/50 rounded-lg shadow-md overflow-hidden flex flex-col transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 relative">
-      <div className="absolute top-2 right-2 z-10">
+    <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-white/5 overflow-hidden flex flex-col transition-all duration-300 transform hover:-translate-y-1 group relative">
+      
+      {/* Image Container */}
+      <div className="h-52 overflow-hidden relative bg-gray-100 dark:bg-gray-800">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          
           <button 
             onClick={handleToggleWishlist}
-            className="p-2 rounded-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-900"
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-black/60 backdrop-blur-sm shadow-sm hover:scale-110 transition-all z-10"
             aria-label="Toggle Wishlist"
           >
-              <HeartIcon className={`w-5 h-5 transition-colors ${isInWishlist ? 'text-red-500 fill-current' : 'text-slate-600 dark:text-slate-300'}`} />
+              <HeartIcon className={`w-5 h-5 transition-colors ${isInWishlist ? 'text-red-500 fill-current' : 'text-gray-400 dark:text-gray-300'}`} />
           </button>
+
+          {!product.inStock && (
+              <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-0">
+                  <span className="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg transform -rotate-12">Out of Stock</span>
+              </div>
+          )}
       </div>
-      <div className="h-48 overflow-hidden">
-        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-      </div>
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-semibold text-text-light dark:text-text-dark mb-2 truncate">{product.name}</h3>
-        <div className="flex items-center mb-2">
-            <div className="flex text-sm">{renderStars()}</div>
-            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({product.reviews} reviews)</span>
+
+      {/* Content */}
+      <div className="p-5 flex flex-col flex-grow">
+        <div className="mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">{product.category}</span>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 h-10 overflow-hidden">{product.description}</p>
-        <div className="mt-auto flex justify-between items-center">
-          <p className="text-xl font-bold text-primary dark:text-primary-light">₹{product.price}</p>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+        
+        <div className="flex items-center mb-3 space-x-2">
+            <div className="flex text-sm">{renderStars()}</div>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">({product.reviews})</span>
+        </div>
+        
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 leading-relaxed flex-grow">{product.description}</p>
+        
+        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex justify-between items-center">
+          <div>
+              <p className="text-xs text-gray-500 uppercase font-bold">Price</p>
+              <p className="text-xl font-black text-gray-900 dark:text-white">₹{product.price}</p>
+          </div>
           <button
             onClick={handleAddToCart}
-            className="flex items-center px-3 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-md hover:bg-primary-dark transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
+            disabled={!product.inStock}
+            className="flex items-center px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all duration-300 transform active:scale-95 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
           >
-            <ShoppingCartIcon className="w-4 h-4 mr-1"/>
+            <ShoppingCartIcon className="w-4 h-4 mr-2"/>
             Add
           </button>
         </div>

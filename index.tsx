@@ -8,6 +8,7 @@ import { OrderProvider } from './contexts/OrderContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ProductProvider } from './contexts/ProductContext';
 import './i18n'; // Initialize i18next
 
 const rootElement = document.getElementById('root');
@@ -23,9 +24,11 @@ root.render(
           <NotificationProvider>
             <WishlistProvider>
               <OrderProvider>
-                <CartProvider>
-                  <App />
-                </CartProvider>
+                <ProductProvider>
+                  <CartProvider>
+                    <App />
+                  </CartProvider>
+                </ProductProvider>
               </OrderProvider>
             </WishlistProvider>
           </NotificationProvider>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,10 +8,10 @@ const LanguageSwitcher: React.FC = () => {
   const languages = [
     { code: 'en', name: 'English' },
     { code: 'hi', name: 'हिन्दी' },
-    { code: 'es', name: 'Español' },
     { code: 'kn', name: 'ಕನ್ನಡ' },
     { code: 'ta', name: 'தமிழ்' },
     { code: 'te', name: 'తెలుగు' },
+    { code: 'mr', name: 'मराठी' },
   ];
 
   const changeLanguage = (event: React.ChangeEvent<HTMLSelectElement>) => {

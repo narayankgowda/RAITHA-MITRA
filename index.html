@@ -3,9 +3,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agri-AI Pest & Disease Detector</title>
+    <title>Raitha Mitra</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react/jsx-runtime": "https://aistudiocdn.com/react@^19.2.0/jsx-runtime",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-i18next": "https://aistudiocdn.com/react-i18next@^16.3.5",
+    "i18next": "https://aistudiocdn.com/i18next@^25.6.3",
+    "i18next-browser-languagedetector": "https://aistudiocdn.com/i18next-browser-languagedetector@^8.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "vite": "https://aistudiocdn.com/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -13,48 +37,49 @@
           extend: {
             colors: {
               primary: {
-                light: '#22c55e', // green-500
-                DEFAULT: '#16a34a', // green-600
-                dark: '#15803d', // green-700
+                DEFAULT: 'var(--color-primary)', 
+                light: 'var(--color-primary-light)',
+                dark: 'var(--color-primary-dark)',
+                bg: 'var(--color-primary-bg)',
               },
-              secondary: '#f97316', // orange-500
+              secondary: {
+                DEFAULT: '#ca8a04', // yellow-600
+                light: '#facc15',   // yellow-400
+                dark: '#a16207',    // yellow-700
+              },
+              accent: {
+                DEFAULT: '#ea580c', // orange-600
+                light: '#fb923c',   // orange-400
+                dark: '#c2410c',    // orange-700
+              },
               background: {
-                light: '#f8fafc', // slate-50
-                dark: '#0f172a' // slate-900
-              },
-              text: {
-                light: '#0f172a', // slate-900
-                dark: '#f1f5f9' // slate-100
+                light: '#f3f4f6', // gray-100
+                dark: '#000000',  // Pure Black
               },
               card: {
                 light: '#ffffff',
-                dark: '#1e293b' // slate-800
+                dark: '#121212', // Neutral Dark Gray (Material)
+              },
+              text: {
+                light: 'var(--color-text-light)', // gray-800
+                dark: 'var(--color-text-dark)',  // gray-50
               },
               border: {
-                  light: '#e2e8f0', // slate-200
-                  dark: '#334155' // slate-700
+                light: 'var(--color-border-light)', // gray-200
+                dark: 'var(--color-border-dark)',  // gray-700
+              },
+              input: {
+                light: 'var(--color-input-light)',
+                dark: 'var(--color-input-dark)', // gray-700
               }
             }
           }
         }
       }
     </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
-    "i18next": "https://aistudiocdn.com/i18next@^23.11.5",
-    "react-i18next": "https://aistudiocdn.com/react-i18next@^14.1.2",
-    "i18next-browser-languageDetector": "https://aistudiocdn.com/i18next-browser-languagedetector@^8.0.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-background-light dark:bg-background-dark transition-colors duration-300">
+  </head>
+  <body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

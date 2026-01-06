@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import { useCart } from '../hooks/useCart';
 import { XIcon, TrashIcon, PlusIcon, MinusIcon, ShoppingCartIcon } from './icons';
@@ -41,8 +43,8 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
       >
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center p-4 border-b border-border-light dark:border-border-dark">
-            <h2 className="text-xl font-semibold">Shopping Cart</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700">
+            <h2 className="text-xl font-semibold text-text-light dark:text-text-dark">Shopping Cart</h2>
+            <button onClick={onClose} className="p-2 rounded-full text-text-light dark:text-text-dark hover:bg-black/5 dark:hover:bg-white/10">
               <XIcon className="w-6 h-6" />
             </button>
           </div>
@@ -58,16 +60,16 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
                 <div key={item.id} className="flex items-center space-x-4">
                   <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
                   <div className="flex-grow">
-                    <p className="font-semibold">{item.name}</p>
+                    <p className="font-semibold text-text-light dark:text-text-dark">{item.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price}</p>
                     <div className="flex items-center mt-2">
-                      <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} className="p-1 border rounded-md dark:border-slate-600"><MinusIcon className="w-4 h-4"/></button>
-                      <span className="px-3">{item.quantity}</span>
-                      <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} className="p-1 border rounded-md dark:border-slate-600"><PlusIcon className="w-4 h-4"/></button>
+                      <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} className="p-1 border rounded-md border-border-light dark:border-border-dark hover:bg-black/5 dark:hover:bg-white/10"><MinusIcon className="w-4 h-4"/></button>
+                      <span className="px-3 font-semibold">{item.quantity}</span>
+                      <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} className="p-1 border rounded-md border-border-light dark:border-border-dark hover:bg-black/5 dark:hover:bg-white/10"><PlusIcon className="w-4 h-4"/></button>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">₹{item.price * item.quantity}</p>
+                    <p className="font-semibold text-text-light dark:text-text-dark">₹{item.price * item.quantity}</p>
                     <button onClick={() => handleRemoveItem(item.id)} className="text-red-500 hover:text-red-700 mt-2">
                       <TrashIcon className="w-5 h-5"/>
                     </button>
@@ -80,8 +82,8 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose }) => {
           {state.items.length > 0 && (
             <div className="p-4 border-t border-border-light dark:border-border-dark">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold">Subtotal:</span>
-                <span className="text-xl font-bold">₹{subtotal.toFixed(2)}</span>
+                <span className="text-lg font-semibold text-text-light dark:text-text-dark">Subtotal:</span>
+                <span className="text-xl font-bold text-text-light dark:text-text-dark">₹{subtotal.toFixed(2)}</span>
               </div>
               <button
                 onClick={handleCheckout}

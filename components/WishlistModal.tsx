@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
@@ -30,8 +32,8 @@ const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
       <div className="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b border-border-light dark:border-border-dark">
-          <h2 className="text-xl font-semibold">My Wishlist</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700">
+          <h2 className="text-xl font-semibold text-text-light dark:text-text-dark">My Wishlist</h2>
+          <button onClick={onClose} className="p-2 rounded-full text-text-light dark:text-text-dark hover:bg-black/5 dark:hover:bg-white/10">
             <XIcon className="w-6 h-6" />
           </button>
         </div>
@@ -46,10 +48,10 @@ const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
           ) : (
             <div className="space-y-4">
                 {items.map(item => (
-                    <div key={item.id} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/50">
+                    <div key={item.id} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5">
                         <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
                         <div className="flex-grow">
-                            <p className="font-semibold">{item.name}</p>
+                            <p className="font-semibold text-text-light dark:text-text-dark">{item.name}</p>
                             <p className="text-lg font-bold text-primary dark:text-primary-light">₹{item.price}</p>
                         </div>
                         <div className="flex items-center space-x-2">

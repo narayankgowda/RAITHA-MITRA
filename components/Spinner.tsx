@@ -1,10 +1,14 @@
 
 import React from 'react';
 
-const Spinner: React.FC = () => {
+interface SpinnerProps {
+  className?: string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({ className }) => {
   return (
     <svg
-      className="animate-spin h-10 w-10 text-primary dark:text-primary-light"
+      className={`animate-spin text-primary dark:text-primary-light ${className || 'h-10 w-10'}`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

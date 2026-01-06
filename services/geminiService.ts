@@ -1,154 +1,324 @@
-import { GoogleGenAI, Part, Type } from "@google/genai";
+
+import { GoogleGenAI, Part, Type, Modality } from "@google/genai";
 import { WeatherData } from "../data/weatherData";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+// Use a singleton pattern to lazy-initialize the AI client.
+let aiInstance: GoogleGenAI | null = null;
+const getAi = (): GoogleGenAI => {
+    if (!aiInstance) {
+        const apiKey = process.env.API_KEY;
+        if (!apiKey || apiKey.includes('your_gemini_api_key')) {
+            throw new Error("Invalid API Key. Please update your .env file with your actual Gemini API Key.");
+        }
+        aiInstance = new GoogleGenAI({ apiKey });
+    }
+    return aiInstance;
+};
 
-// Helper function to handle API calls and errors
-async function makeApiCall(prompt: (string | { inlineData: { data: string; mimeType: string; } } | { text: string; })[]): Promise<string> {
+const ANALYSIS_ERROR_MESSAGE = "Analysis failed. Please try again.";
+
+// Centralized error handler
+const handleApiError = (error: unknown, context: string): Error => {
+    console.error(`Gemini API Error (${context}):`, error);
+    let message = 'An unknown error occurred. Please try again later.';
+
+    if (error instanceof Error) {
+        if (error.message.includes('API key not valid')) {
+            message = 'Invalid API key.';
+        } else if (error.message.match(/quota|rate limit/i)) {
+            message = 'System busy. Try again in a moment.';
+        } else if (error.message.includes('timed out')) {
+            message = 'Request timed out. Check connection.';
+        } else if (error.message === ANALYSIS_ERROR_MESSAGE) {
+            message = error.message;
+        } else {
+            message = `Service error: ${error.message}`;
+        }
+    }
+    return new Error(message);
+};
+
+// Generic API call wrapper
+async function makeApiCall(
+    prompt: (string | Part)[], 
+    context: string, 
+    modelName = 'gemini-3-flash-preview'
+): Promise<string> {
     try {
-        // FIX: The `Part` type must be an object. Convert any strings in the prompt array
-        // to the `{text: string}` format to conform to the API's requirements.
+        const ai = getAi();
         const parts: Part[] = prompt.map(p => (typeof p === 'string' ? { text: p } : p));
+        
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: modelName,
             contents: { parts: parts },
         });
-        return response.text;
+        return response.text || "No response.";
     } catch (error) {
-        console.error("Gemini API Error:", error);
-        if (error instanceof Error) {
-            // Re-throw a more user-friendly error to be caught by the component
-            throw new Error(`An error occurred while communicating with the AI service: ${error.message}`);
-        }
-        throw new Error("An unknown error occurred while communicating with the AI service.");
+        throw handleApiError(error, context);
     }
 }
 
+export const analyzeCropImage = async (
+    images: { base64: string; mimeType: string }[], 
+    location?: string
+): Promise<{ text: string; confidence: string }> => {
+    try {
+        const ai = getAi();
+        
+        const imageParts: Part[] = images.map(img => ({
+            inlineData: { data: img.base64, mimeType: img.mimeType }
+        }));
 
-export const analyzeCropImage = async (base64: string, mimeType: string): Promise<string> => {
-    const prompt = [
-        { text: "You are an expert agronomist. Analyze the following image of a crop plant. Identify any visible pests, diseases, or nutrient deficiencies. Provide a detailed report including:\n\n1.  **Identification:** Clearly state the identified issue (e.g., 'Aphid infestation', 'Powdery Mildew', 'Nitrogen deficiency').\n2.  **Description:** Briefly describe the symptoms seen in the image.\n3.  **Recommendations:** Suggest specific organic and chemical treatment options, including application methods.\n4.  **Preventive Measures:** List steps the farmer can take to prevent this issue in the future.\n\nFormat your response in clear, easy-to-read Markdown." },
+        const initialPromptText = `As an expert agronomist, analyze the crop image. Location: ${location || 'Unknown'}.
+        
+        Safety:
+        1. If blurry/not a plant, say "Unclear image".
+        2. Be conservative with diagnosis.
+        3. Include chemical safety warnings.
+
+        Output JSON:
         {
-            inlineData: {
-                data: base64,
-                mimeType: mimeType,
+          "confidence": "High/Medium/Low",
+          "diagnosis": "Name of issue or 'Healthy'",
+          "reportMarkdown": "Brief report:\n- **Diagnosis**: Name\n- **Symptoms**: Key signs\n- **Treatment**: Organic & Chemical steps.\n- **Disclaimer**: Consult expert."
+        }`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: {
+                parts: [
+                    { text: initialPromptText },
+                    ...imageParts
+                ],
             },
-        },
-    ];
-    return makeApiCall(prompt);
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        confidence: { type: Type.STRING },
+                        diagnosis: { type: Type.STRING },
+                        reportMarkdown: { type: Type.STRING }
+                    }
+                }
+            },
+        });
+
+        const jsonText = response.text?.trim() || "{}";
+        const result = JSON.parse(jsonText);
+
+        return { 
+            text: result.reportMarkdown || "Could not identify issue.", 
+            confidence: result.confidence || "Low"
+        };
+
+    } catch (error) {
+        throw handleApiError(error, 'analyze crop images');
+    }
 };
 
-export const analyzeSoilData = async (formData: { [key: string]: string }): Promise<string> => {
-    const dataString = Object.entries(formData)
-        .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
-        .join(', ');
+export interface SoilAnalysisResult {
+    markdownReport: string;
+    suggestedCrops: string[];
+    extractedValues?: {
+        ph?: string;
+        ec?: string;
+        oc?: string;
+        n?: string;
+        p?: string;
+        k?: string;
+        zn?: string;
+        fe?: string;
+    };
+}
 
-    const prompt = [
-        { text: `You are a soil science expert. Based on the following soil test data (${dataString}), provide a detailed analysis and recommendation plan for a farmer. The report should include:\n\n1.  **Overall Soil Health Summary:** A brief overview of the soil's condition.\n2.  **Parameter Analysis:** For each parameter (pH, EC, OC, N, P, K, etc.), explain what the value means and if it's within the optimal range for general agriculture.\n3.  **Crop Suitability:** Suggest 3-5 crops that would be suitable for this soil type.\n4.  **Fertilizer Recommendations:** Provide specific recommendations for fertilizers (both organic and chemical) to correct any deficiencies or imbalances. Include application rates (e.g., kg/hectare).\n5.  **Soil Amendment Suggestions:** Recommend any soil amendments like lime, gypsum, or organic matter to improve soil structure and health.\n\nFormat your response in clear, easy-to-read Markdown.` }
-    ];
-    return makeApiCall(prompt);
+export const analyzeSoilData = async (
+    soilData: { [key: string]: string },
+    contextData?: { soilType: string; currentCrop: string; prevCrop: string; irrigation: string }
+): Promise<SoilAnalysisResult> => {
+    const dataString = Object.entries(soilData).map(([k, v]) => `${k}:${v}`).join(', ');
+    const contextString = contextData ? `Type:${contextData.soilType}, Irrig:${contextData.irrigation}` : '';
+
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `Analyze soil data: ${dataString}. Context: ${contextString}.
+            Return JSON:
+            {
+                "markdownReport": "Concise analysis & fertilizer plan. NOTE: Add disclaimer that this is AI-generated advice.",
+                "suggestedCrops": ["Crop1", "Crop2", "Crop3"]
+            }`,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        markdownReport: { type: Type.STRING },
+                        suggestedCrops: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    }
+                }
+            }
+        });
+        
+        const jsonText = response.text?.trim() || "{}";
+        return JSON.parse(jsonText) as SoilAnalysisResult;
+    } catch (error) {
+        throw handleApiError(error, "analyze soil data");
+    }
 };
 
-export const analyzeSoilReportImage = async (base64: string, mimeType: string): Promise<string> => {
-    const prompt = [
-        { text: "You are a soil science expert. Analyze the following image of a soil test report. Extract the key parameters (like pH, EC, OC, N, P, K, etc.) and their values. Then, provide a detailed analysis and recommendation plan for a farmer, just as you would for manually entered data. The report should include:\n\n1.  **Overall Soil Health Summary:** A brief overview of the soil's condition based on the report.\n2.  **Parameter Analysis:** For each parameter, explain what the value means and if it's within the optimal range.\n3.  **Crop Suitability:** Suggest 3-5 crops that would be suitable for this soil.\n4.  **Fertilizer Recommendations:** Provide specific recommendations for fertilizers (organic and chemical) and application rates.\n5.  **Soil Amendment Suggestions:** Recommend amendments to improve soil health.\n\nIf you cannot read a value, state that it's unclear. Format your response in clear, easy-to-read Markdown." },
-        {
-            inlineData: {
-                data: base64,
-                mimeType: mimeType,
+export const analyzeSoilReportImage = async (base64: string, mimeType: string): Promise<SoilAnalysisResult> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: {
+                parts: [
+                    { text: "Extract soil values (pH, N, P, K, etc). Provide brief analysis & top 3 crops. JSON Output. If text is unreadable, set values to empty strings." },
+                    { inlineData: { data: base64, mimeType: mimeType } },
+                ]
             },
-        },
-    ];
-    return makeApiCall(prompt);
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        markdownReport: { type: Type.STRING },
+                        suggestedCrops: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        extractedValues: {
+                            type: Type.OBJECT,
+                            properties: {
+                                ph: { type: Type.STRING },
+                                ec: { type: Type.STRING },
+                                oc: { type: Type.STRING },
+                                n: { type: Type.STRING },
+                                p: { type: Type.STRING },
+                                k: { type: Type.STRING },
+                                zn: { type: Type.STRING },
+                                fe: { type: Type.STRING },
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const jsonText = response.text?.trim() || "{}";
+        return JSON.parse(jsonText) as SoilAnalysisResult;
+    } catch (error) {
+        throw handleApiError(error, "analyze soil report image");
+    }
 };
 
 export const getFertilizerRecommendation = async (soilReport: string, crop: string, area: number, yieldTarget: number): Promise<string> => {
     const prompt = [
-        `You are an expert agronomist. A farmer has provided their soil analysis report and requires a detailed fertilizer plan.
-
-**Soil Analysis Report Summary:**
----
-${soilReport}
----
-
-**Farmer's Input:**
-- **Crop:** ${crop}
-- **Farm Area:** ${area} acres
-- **Target Yield:** ${yieldTarget} quintals per acre
-
-Based on all this information, generate a comprehensive and practical fertilizer recommendation plan. The plan must include:
-
-1.  **Nutrient Requirement Analysis:** Based on the soil report and the target yield for the specified crop, calculate the required N, P, and K (in kg/acre).
-2.  **Fertilizer Plan:** Provide a clear, actionable plan using common fertilizers.
-    -   Recommend specific fertilizers (e.g., Urea, DAP, MOP, etc.).
-    -   Specify the **exact quantity of each fertilizer needed for the total ${area} acre area**.
-    -   Break down the application into stages (e.g., Basal Dose at sowing, Top Dressing at 30 days, etc.).
-3.  **Organic Alternatives:** Suggest organic options like FYM (Farm Yard Manure), vermicompost, or other bio-fertilizers, including recommended quantities.
-4.  **Application Notes:** Provide brief, important instructions on how to apply the fertilizers for best results.
-
-Format the response in clear, easy-to-read Markdown.`
+        `Act as agronomist. Plan fertilizer for ${area} acres of ${crop} (Target: ${yieldTarget} q/acre).
+        Based on soil info: "${soilReport.substring(0, 200)}...".
+        Output: Concise Markdown plan. 1. NPK Calculation. 2. Schedule (Basal/Top). 3. Organic options. 
+        Safety Warning: Use gloves/masks when handling chemicals.`
     ];
-    return makeApiCall(prompt);
+    return makeApiCall(prompt, 'get fertilizer recommendation', 'gemini-3-flash-preview');
 };
 
-export const generateCropReport = async (cropName: string, stageName: string, tasks: string[]): Promise<string> => {
-    const taskList = tasks.join(', ');
+export const generateCropReport = async (cropName: string, stageName: string, tasks: {text: string, priority: string}[], variety?: string): Promise<string> => {
     const prompt = [
-        { text: `You are an agricultural expert providing a detailed report for a farmer. The crop is **${cropName}** and it is currently in the **${stageName}** stage.\n\nThe key tasks for this stage are: ${taskList}.\n\nBased on this information, generate a comprehensive report that includes:\n\n1.  **Task Elaboration:** Briefly expand on each of the key tasks, providing best practices.\n2.  **Potential Risks & Mitigation:** Identify common pests, diseases, and environmental risks during this specific stage and suggest mitigation strategies.\n3.  **Water & Nutrient Management:** Provide specific advice on irrigation and fertilization tailored to this stage.\n4.  **Pro-Tip:** Offer one valuable, actionable tip for maximizing yield or quality during this stage.\n\nFormat the response in clear, well-structured Markdown.` }
+        `Report for ${cropName} (${stageName}). Tasks: ${tasks.map(t => t.text).join(', ')}.
+        Provide concise Markdown: 1. Task tips. 2. Risks. 3. Quick expert tip.`
     ];
-    return makeApiCall(prompt);
+    return makeApiCall(prompt, 'generate crop report', 'gemini-3-flash-preview');
 };
 
-export const getChatbotResponse = async (history: {sender: 'user' | 'bot', text: string}[], newMessage: string): Promise<string> => {
-    const roleMapping = {
-        user: 'user',
-        bot: 'model'
-    } as const;
-
-    const apiHistory = history.map(msg => ({
+export const getChatbotResponse = async (history: {sender: 'user' | 'bot', text: string}[], newMessage: string, context?: { weather?: WeatherData | null }): Promise<string> => {
+    const roleMapping = { user: 'user', bot: 'model' } as const;
+    const recentHistory = history.slice(-10);
+    const apiHistory = recentHistory.map(msg => ({
         role: roleMapping[msg.sender],
         parts: [{ text: msg.text }]
     }));
 
+    let contextString = '';
+    if (context?.weather) {
+        const w = context.weather;
+        contextString += `Loc: ${w.city}, ${w.currentTemp}C, ${w.condition}.`;
+    }
+
      try {
+        const ai = getAi();
         const chat = ai.chats.create({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             history: apiHistory,
             config: {
-                systemInstruction: "You are Agri-AI, a friendly and knowledgeable agricultural assistant. Your goal is to provide concise, helpful, and accurate information to farmers. Keep your answers easy to understand and well-formatted using Markdown. If a question is outside the scope of agriculture, politely decline to answer. You must not answer questions about sensitive topics. "
+                systemInstruction: `You are Raitha Mitra, an agricultural assistant. Be concise, helpful, and direct. 
+                If you are unsure about a pest diagnosis or chemical recommendation, tell the user to consult a local expert.
+                ${contextString}`,
             }
         });
         const response = await chat.sendMessage({ message: newMessage });
-        return response.text;
+        return response.text || "Sorry, try again.";
     } catch (error) {
-        console.error("Gemini Chat Error:", error);
-         if (error instanceof Error) {
-            throw new Error(`An error occurred while communicating with the AI service: ${error.message}`);
-        }
-        throw new Error("An unknown error occurred while communicating with the AI service.");
+        throw handleApiError(error, 'get chatbot response');
     }
 };
 
+// --- NEW COMMUNITY & ACADEMY HELPERS ---
 
-export const getVetAnalysis = async (base64: string, mimeType: string, query: string): Promise<string> => {
+export const getCommunitySummary = async (postTitle: string, postContent: string, comments: string[]): Promise<string> => {
     const prompt = [
-        { text: "You are an AI veterinary assistant. Analyze the provided image and the user's query about their animal's health. Provide a preliminary analysis, but **always strongly advise the user to consult a qualified veterinarian for a proper diagnosis and treatment**. Your response should include:\n\n1.  **Observation:** Describe what you see in the image that is relevant to the user's query.\n2.  **Potential Issues:** List possible conditions or problems based on the visual evidence and query. Do not give a definitive diagnosis.\n3.  **Immediate Care Suggestions:** Suggest any safe, first-aid or comfort measures the owner can take while waiting for a vet.\n4.  **Disclaimer:** End with a clear and prominent disclaimer that you are an AI assistant and a professional veterinarian must be consulted.\n\nFormat your response in clear, easy-to-read Markdown." },
+        `As Raitha Mitra Community Moderator, summarize the key takeaways from this discussion:
+        Title: ${postTitle}
+        Post: ${postContent}
+        Top Comments: ${comments.join(' | ')}
+        
+        Output Markdown:
+        **Problem identified:** (1 sentence)
+        **Peer consensus:** (The most recommended solution)
+        **Action item:** (One clear next step)
+        Keep it under 100 words.`
+    ];
+    return makeApiCall(prompt, 'get community summary', 'gemini-3-flash-preview');
+};
+
+export const getAcademyTutorResponse = async (videoTitle: string, question: string): Promise<string> => {
+    const prompt = [
+        `You are the Agri-Academy AI Tutor. A farmer just watched a video about "${videoTitle}". 
+        They asked: "${question}". 
+        Provide a helpful, practical answer that relates the video concepts to a real-world farm scenario. 
+        Be encouraging and keep it concise.`
+    ];
+    return makeApiCall(prompt, 'academy tutor response', 'gemini-3-flash-preview');
+};
+
+export const getVetAnalysis = async (
+    base64: string, 
+    mimeType: string, 
+    query: string,
+    vitals?: { species?: string; age?: string; weight?: string; temperature?: string }
+): Promise<string> => {
+    const prompt = [
+        { text: `Vet Assistant. Analyze image & symptoms: "${query}". Vitals: ${JSON.stringify(vitals)}.
+        Output Markdown:
+        **[URGENCY LEVEL]**
+        **Diagnosis:** Top 2 possibilities (State 'Uncertain' if image is unclear).
+        **Treatment:** Immediate steps (Generic names).
+        **Disclaimer:** This is AI advice. Consult a vet for confirmation.` },
         {
             inlineData: {
                 data: base64,
                 mimeType: mimeType,
             },
         },
-        { text: `User query: "${query}"` },
     ];
-    return makeApiCall(prompt);
+    
+    return makeApiCall(prompt, 'get vet analysis', 'gemini-3-flash-preview');
 };
 
 export const getWeatherForecast = async (latitude: number, longitude: number): Promise<WeatherData> => {
     try {
+        const ai = getAi();
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `You are an expert meteorologist. Provide a detailed weather forecast for the location with latitude ${latitude} and longitude ${longitude}. Provide the data in the exact JSON format requested.`,
+            model: 'gemini-3-flash-preview', 
+            contents: `7-day weather forecast for Lat:${latitude}, Lon:${longitude}. JSON format. Icons: clear-day, cloudy, rain, etc.`,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -191,22 +361,190 @@ export const getWeatherForecast = async (latitude: number, longitude: number): P
             }
         });
         
-        const jsonText = response.text.trim();
+        const jsonText = response.text?.trim() || "{}";
         const weatherData = JSON.parse(jsonText) as WeatherData;
         
-        if (weatherData.hourly.length > 0 && weatherData.hourly[0].time.toLowerCase() !== 'now') {
+        if (weatherData.hourly && weatherData.hourly.length > 0 && weatherData.hourly[0].time.toLowerCase() !== 'now') {
             weatherData.hourly.unshift({
                 time: 'Now',
                 temp: weatherData.currentTemp,
                 condition: weatherData.condition,
-                icon: weatherData.condition.toLowerCase().replace(' ', '-')
+                icon: weatherData.daily?.[0]?.icon || 'clear-day'
             });
         }
-        
         return weatherData;
 
     } catch (error) {
-        console.error("Gemini Weather API Error:", error);
-        throw new Error("Failed to fetch weather forecast from AI service.");
+        throw handleApiError(error, "fetch weather forecast");
     }
+};
+
+export interface AgriAdvisory {
+    title: string;
+    severity: 'critical' | 'warning' | 'info';
+    description: string;
+}
+
+export const generateWeatherAlerts = async (weatherData: WeatherData): Promise<AgriAdvisory[]> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview', 
+            contents: `Agri-weather alerts for ${weatherData.currentTemp}C, ${weatherData.condition}. 
+            Output JSON array of 2 advisories: {title, severity: 'critical'|'warning'|'info', description}.`,
+             config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            title: { type: Type.STRING },
+                            severity: { type: Type.STRING, enum: ['critical', 'warning', 'info'] },
+                            description: { type: Type.STRING }
+                        }
+                    }
+                }
+            }
+        });
+        const jsonText = response.text?.trim() || "[]";
+        return JSON.parse(jsonText);
+    } catch (error) {
+        return [{ title: "General Advice", severity: "info", description: "Monitor local conditions." }];
+    }
+};
+
+export interface RotationCrop {
+    cropName: string;
+    season: string; // Kharif, Rabi, Zaid
+    reason: string; // Why this crop was chosen (e.g., Nitrogen fixation)
+    duration: string; // e.g., "120 days"
+    benefit: string; // Soil benefit
+}
+
+export interface RotationPlan {
+    planName: string;
+    crops: RotationCrop[];
+    soilImprovementSummary: string;
+}
+
+export const generateCropRotationPlan = async (details: { currentCrop: string; farmSize: string; soilType: string; season: string }): Promise<RotationPlan> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `Generate a 3-year crop rotation sequence (approx 5-6 crops) starting AFTER ${details.currentCrop} in ${details.season} season for ${details.soilType} soil.
+            Focus on soil health, nitrogen fixation, and pest cycle breaking.
+            Return strictly JSON.`,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        planName: { type: Type.STRING },
+                        crops: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    cropName: { type: Type.STRING },
+                                    season: { type: Type.STRING },
+                                    reason: { type: Type.STRING },
+                                    duration: { type: Type.STRING },
+                                    benefit: { type: Type.STRING }
+                                }
+                            }
+                        },
+                        soilImprovementSummary: { type: Type.STRING }
+                    }
+                }
+            }
+        });
+        const jsonText = response.text?.trim() || "{}";
+        return JSON.parse(jsonText) as RotationPlan;
+    } catch (error) {
+        throw handleApiError(error, "generate crop rotation");
+    }
+};
+
+export interface YieldPrediction {
+    predictedYield: string; // Range e.g. "22-25"
+    unit: string; // e.g. "Quintals/Acre"
+    confidence: string;
+    scenarios: {
+        pessimistic: number;
+        likely: number;
+        optimistic: number;
+    };
+    positiveFactors: string[];
+    negativeFactors: string[];
+    recommendations: string[];
+    estimatedRevenue: string; // e.g. "45000 - 50000"
+}
+
+export const predictCropYield = async (formData: { crop: string; area: string; soil: string; irrigation: string; variety?: string; fertilizer?: string }): Promise<YieldPrediction> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `Predict yield for ${formData.crop} (${formData.variety || 'Standard'}), ${formData.area} acres, ${formData.soil}, ${formData.irrigation}, Fertilizer: ${formData.fertilizer || 'Standard NPK'}.
+            Provide 3 scenarios (numbers only for scenarios). Revenue in INR based on current Indian market rates. JSON Output.`,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        predictedYield: { type: Type.STRING },
+                        unit: { type: Type.STRING },
+                        confidence: { type: Type.STRING },
+                        scenarios: {
+                            type: Type.OBJECT,
+                            properties: {
+                                pessimistic: { type: Type.NUMBER },
+                                likely: { type: Type.NUMBER },
+                                optimistic: { type: Type.NUMBER }
+                            }
+                        },
+                        positiveFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        negativeFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        estimatedRevenue: { type: Type.STRING }
+                    },
+                }
+            },
+        });
+        const jsonText = response.text?.trim() || "{}";
+        return JSON.parse(jsonText) as YieldPrediction;
+    } catch (error) {
+        throw handleApiError(error, "predict crop yield");
+    }
+};
+
+export const getFinanceAdvice = async (transactions: any[], totalIncome: number, totalExpense: number): Promise<string> => {
+    const dataString = transactions.map(t => `${t.date}: ${t.type} - ${t.category} (₹${t.amount})`).join(', ');
+    const prompt = [
+        `Act as an agricultural financial advisor. Analyze these farm transactions: ${dataString}.
+        Total Income: ₹${totalIncome}, Total Expense: ₹${totalExpense}.
+        Provide strictly Markdown advice:
+        1. **Burn Rate Analysis**: High-level spending efficiency.
+        2. **Saving Opportunities**: Specific areas where costs can be reduced based on the list.
+        3. **Cashflow Strategy**: Advice for the upcoming season.
+        Keep it concise (max 150 words).`
+    ];
+    return makeApiCall(prompt, 'get financial advice', 'gemini-3-flash-preview');
+};
+
+export const generateProductStory = async (details: { crop: string; date: string; organic: string; location: string; method: string }): Promise<string> => {
+    const prompt = [
+        `Write a 50-word marketing story for ${details.crop} from ${details.location}. Method: ${details.method}.`
+    ];
+    return makeApiCall(prompt, 'generate product story', 'gemini-3-flash-preview');
+};
+
+export const getMarketInsight = async (commodity: string, market: string, currentPrice: number, history: number[]): Promise<string> => {
+    const prompt = [
+        `Market advice for ${commodity} at ${market} (Price: ${currentPrice}). Trend: ${history.join(',')}.
+        Action: SELL or HOLD? Why? (Max 2 sentences)`
+    ];
+    return makeApiCall(prompt, 'generate market insight', 'gemini-3-flash-preview');
 };

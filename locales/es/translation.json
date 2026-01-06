@@ -2,25 +2,6 @@
   "header": {
     "language": "Idioma"
   },
-  "landing": {
-    "title": "Bienvenido a Agri-AI",
-    "subtitle": "Su plataforma todo en uno para la agricultura moderna. Seleccione su rol para continuar.",
-    "farmer": {
-      "title": "Agricultor",
-      "description": "Acceda a herramientas de IA, gestione su rebaño, supervise cultivos y obtenga asesoramiento de expertos.",
-      "button": "Iniciar sesión como Agricultor"
-    },
-    "buyer": {
-      "title": "Comprador",
-      "description": "Explore el mercado, encuentre productos frescos y realice pedidos directamente desde las granjas.",
-      "button": "Iniciar sesión como Comprador"
-    },
-    "admin": {
-      "title": "Administrador",
-      "description": "Gestione la plataforma, vea análisis y supervise las operaciones.",
-      "button": "Iniciar sesión como Administrador"
-    }
-  },
   "login": {
     "back": "Atrás",
     "usernameLabel": "Nombre de usuario",
@@ -29,14 +10,6 @@
     "farmer": {
       "title": "Portal del Agricultor",
       "subtitle": "Acceda al panel de su granja"
-    },
-    "buyer": {
-      "title": "Portal del Comprador",
-      "subtitle": "Explore el Mercado de Productos Agrícolas"
-    },
-    "admin": {
-      "title": "Panel de Administrador",
-      "subtitle": "Gestión de la Plataforma"
     }
   },
   "dashboard": {
@@ -46,8 +19,10 @@
         "dashboard": "Tablero",
         "pestDetector": "Detector de Plagas",
         "soilAnalysis": "Análisis de Suelo",
+        "yieldPredictor": "Predictor de Rendimiento",
         "marketplace": "Mercado",
-        "mandiLocator": "Localizador de Mandi",
+        "livePrices": "Precios de Mercado en Vivo",
+        "expenseTracker": "Rastreador de Gastos",
         "animalHusbandry": "Ganadería",
         "aiVet": "Asistente Veterinario IA",
         "vetConnect": "Conectar con Veterinario",
@@ -57,14 +32,57 @@
         "schemes": "Esquemas Gubernamentales",
         "chatbot": "Chatbot",
         "profile": "Mi Perfil",
-        "portfolio": "Mi Portafolio"
+        "about": "Acerca de",
+        "community": "Comunidad y Foros",
+        "cropRotation": "Rotación de Cultivos"
+      },
+      "home": {
+        "greeting_morning": "Buenos Días",
+        "greeting_afternoon": "Buenas Tardes",
+        "greeting_evening": "Buenas Noches"
+      },
+      "soilAnalysisPage": {
+        "calculatorTitle": "Calculadora de Fertilizantes",
+        "cropTypeLabel": "Tipo de Cultivo",
+        "farmAreaLabel": "Área de la Granja (en acres)",
+        "targetYieldLabel": "Rendimiento Objetivo (quintales/acre)",
+        "calculateButton": "Calcular Recomendaciones"
+      },
+      "cropMonitoring": {
+        "addTaskPlaceholder": "Añadir una nueva tarea..."
+      },
+      "keyMetrics": {
+        "herd": "Rebaño Activo",
+        "crops": "Cultivos Monitoreados",
+        "tasks": "Tareas Pendientes",
+        "market": "Tendencia del Mercado"
+      },
+      "taskOverview": {
+        "title": "Resumen de Tareas"
       }
-    },
-    "buyer": {
-      "title": "Mercado para Compradores"
-    },
-    "admin": {
-      "title": "Panel de Administrador"
     }
+  },
+  "voiceAssistant": {
+    "title": "Asistente de Voz Raitha Mitra",
+    "intro": "¡Hola! Soy Raitha Mitra. ¿Cómo puedo ayudarte? Toca el botón de abajo para hablar.",
+    "listening": "Escuchando...",
+    "connecting": "Conectando...",
+    "speaking": "Raitha Mitra está hablando..."
+  },
+  "about": {
+    "title": "Acerca de Raitha Mitra",
+    "missionTitle": "Nuestra Misión",
+    "missionText": "Empoderar a los agricultores con tecnología de IA de vanguardia, haciendo que la agricultura sostenible y rentable sea accesible para todos. Nuestro objetivo es cerrar la brecha entre la sabiduría agrícola tradicional y los conocimientos modernos basados en datos.",
+    "offerTitle": "Lo que Ofrecemos",
+    "offerPest": "Detección de Plagas y Enfermedades con IA",
+    "offerPestDesc": "Identifique instantáneamente los problemas de los cultivos a partir de una sola foto.",
+    "offerSoil": "Análisis Inteligente del Suelo",
+    "offerSoilDesc": "Obtenga informes detallados del suelo y planes de fertilizantes.",
+    "offerMarket": "Mercado Integrado",
+    "offerMarketDesc": "Compre insumos y venda productos directamente.",
+    "offerHerd": "Gestión de Rebaños",
+    "offerHerdDesc": "Rastree los registros de salud, leche y cría.",
+    "visionTitle": "Nuestra Visión",
+    "visionText": "Visualizamos un futuro en el que cada agricultor, independientemente del tamaño de su tierra, tenga las herramientas para tomar decisiones informadas, aumentar su rendimiento y contribuir a un planeta más saludable."
   }
 }

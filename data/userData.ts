@@ -1,27 +1,13 @@
+
+
 export interface FarmerProfileData {
   name: string;
   email: string;
   phone: string;
+  location: string;
   farmName: string;
   farmSize: number; // in acres
   mainCrops: string[];
-  profilePicture: string;
-}
-
-export interface BuyerProfileData {
-  name: string;
-  email: string;
-  phone: string;
-  companyName: string;
-  preferredCategories: string[];
-  profilePicture: string;
-}
-
-export interface AdminProfileData {
-  name: string;
-  email: string;
-  role: string;
-  permissions: string[];
   profilePicture: string;
 }
 
@@ -36,6 +22,7 @@ export const mockFarmerData: FarmerPortfolioData = {
   name: 'NARAYAN K GOWDA',
   email: 'appu01452@example.com',
   phone: '+91 9964880400',
+  location: 'Hubli, Karnataka',
   farmName: 'Green Valley Farms',
   farmSize: 25,
   mainCrops: ['Rice', 'Wheat', 'Sugarcane'],
@@ -55,20 +42,36 @@ export const mockFarmerData: FarmerPortfolioData = {
   coverImage: 'https://storage.googleapis.com/aistudio-marketplace-public-test-assets/farm_cover.jpg'
 };
 
+export interface BuyerProfileData {
+  name: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  preferredCategories: string[];
+  profilePicture: string;
+}
+
+export interface AdminProfileData {
+  name: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  profilePicture: string;
+}
 
 export const mockBuyerData: BuyerProfileData = {
-  name: 'Sunita Singh',
-  email: 'sunita.s@example.com',
-  phone: '+91 87654 32109',
+  name: 'Retail Buyer',
+  email: 'buyer@example.com',
+  phone: '+91 8887776665',
   companyName: 'Fresh Produce Inc.',
-  preferredCategories: ['Vegetables', 'Fruits'],
+  preferredCategories: ['Vegetables', 'Fruits', 'Grains'],
   profilePicture: 'https://storage.googleapis.com/aistudio-marketplace-public-test-assets/buyer_profile.jpg',
 };
 
 export const mockAdminData: AdminProfileData = {
-  name: 'Anil Mehta',
-  email: 'anil.mehta@agriai.com',
-  role: 'Platform Manager',
-  permissions: ['User Management', 'Platform Analytics', 'Content Moderation', 'System Settings'],
+  name: 'Admin User',
+  email: 'admin@raitha-mitra.com',
+  role: 'Platform Administrator',
+  permissions: ['User Management', 'Content Moderation', 'System Settings'],
   profilePicture: 'https://storage.googleapis.com/aistudio-marketplace-public-test-assets/admin_profile.jpg',
 };

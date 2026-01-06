@@ -1,201 +1,215 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Header';
-import PestDetector from './PestDetector';
-import SoilAnalysis from './SoilAnalysis';
-import Marketplace from './Marketplace';
 import Cart from './Cart';
 import WishlistModal from './WishlistModal';
 import OrderHistoryModal from './OrderHistoryModal';
-import MandiLocator from './MandiLocator';
-import AnimalHusbandry from './AnimalHusbandry';
-import GovernmentSchemes from './GovernmentSchemes';
-import CropMonitoring from './CropMonitoring';
-import Weather from './Weather';
-import Chatbot from './Chatbot';
-import AIVetAssistant from './AIVetAssistant';
-import VetConnect from './VetConnect';
 import NotificationsPanel from './NotificationsPanel';
-import ExpertHelpline from './ExpertHelpline';
-import FarmerProfile from './FarmerProfile';
-import FarmerPortfolio from './FarmerPortfolio';
-import DashboardHome from './DashboardHome';
-
+import VoiceAssistantModal from './VoiceAssistantModal';
+import { useAuth } from '../hooks/useAuth';
+import { Logo } from './Logo';
 
 import { 
-    LeafIcon, FlaskConicalIcon, ShoppingCartIcon, MapPinIcon, 
-    PawPrintIcon, ActivityIcon, SunIcon, BotIcon,
-    HeartIcon, ShieldCheckIcon, HeadsetIcon, UserCircleIcon, GlobeIcon,
-    LayoutGridIcon, ChevronLeftIcon, ChevronRightIcon
+    LayoutGridIcon, CloudSunIcon, MicroscopeIcon, ShovelIcon, 
+    ChartSplineIcon, RotateCcwIcon, StethoscopeIcon, BotIcon, 
+    ScanLineIcon, CowIcon, WalletIcon, HandshakeIcon, StoreIcon, 
+    NewspaperIcon, LandmarkIcon, BriefcaseMedicalIcon, GraduationCapIcon,
+    UserCircleIcon, InfoIcon, MicIcon
 } from './icons';
 
-interface FarmerDashboardProps {
-    onLogout: () => void;
+type FeaturePath = 'dashboard' | 'pest-detector' | 'soil-analysis' | 'marketplace' | 'animal-husbandry' | 'crop-monitoring' | 'weather' | 'chatbot' | 'schemes' | 'ai-vet' | 'vet-connect' | 'expert-helpline' | 'profile' | 'about' | 'live-prices' | 'yield-predictor' | 'expense-tracker' | 'crop-rotation' | 'resource-sharing';
+
+interface NavSection {
+    title: string;
+    items: {
+        path: FeaturePath;
+        labelKey: string;
+        icon: React.FC<any>;
+    }[];
 }
 
-type Feature = 'dashboard' | 'pestDetector' | 'soilAnalysis' | 'marketplace' | 'mandiLocator' | 'animalHusbandry' | 'cropMonitoring' | 'weather' | 'chatbot' | 'schemes' | 'aiVet' | 'vetConnect' | 'expertHelpline' | 'profile' | 'portfolio';
+const navSections: NavSection[] = [
+    {
+        title: 'Overview',
+        items: [
+            { path: 'dashboard', labelKey: 'dashboard.farmer.nav.dashboard', icon: LayoutGridIcon },
+            { path: 'weather', labelKey: 'dashboard.farmer.nav.weather', icon: CloudSunIcon },
+        ]
+    },
+    {
+        title: 'AI & Smart Tools',
+        items: [
+            { path: 'pest-detector', labelKey: 'dashboard.farmer.nav.pestDetector', icon: MicroscopeIcon },
+            { path: 'soil-analysis', labelKey: 'dashboard.farmer.nav.soilAnalysis', icon: ShovelIcon },
+            { path: 'yield-predictor', labelKey: 'dashboard.farmer.nav.yieldPredictor', icon: ChartSplineIcon },
+            { path: 'crop-rotation', labelKey: 'dashboard.farmer.nav.cropRotation', icon: RotateCcwIcon },
+            { path: 'ai-vet', labelKey: 'dashboard.farmer.nav.aiVet', icon: StethoscopeIcon },
+            { path: 'chatbot', labelKey: 'dashboard.farmer.nav.chatbot', icon: BotIcon },
+        ]
+    },
+    {
+        title: 'Farm Management',
+        items: [
+            { path: 'crop-monitoring', labelKey: 'dashboard.farmer.nav.cropMonitoring', icon: ScanLineIcon },
+            { path: 'animal-husbandry', labelKey: 'dashboard.farmer.nav.animalHusbandry', icon: CowIcon },
+            { path: 'expense-tracker', labelKey: 'dashboard.farmer.nav.expenseTracker', icon: WalletIcon },
+            { path: 'resource-sharing', labelKey: 'dashboard.farmer.nav.resourceSharing', icon: HandshakeIcon },
+        ]
+    },
+    {
+        title: 'Market & Trade',
+        items: [
+            { path: 'marketplace', labelKey: 'dashboard.farmer.nav.marketplace', icon: StoreIcon },
+            { path: 'live-prices', labelKey: 'dashboard.farmer.nav.livePrices', icon: NewspaperIcon },
+        ]
+    },
+    {
+        title: 'Help & Services',
+        items: [
+            { path: 'schemes', labelKey: 'dashboard.farmer.nav.schemes', icon: LandmarkIcon },
+            { path: 'vet-connect', labelKey: 'dashboard.farmer.nav.vetConnect', icon: BriefcaseMedicalIcon },
+            { path: 'expert-helpline', labelKey: 'dashboard.farmer.nav.expertHelpline', icon: GraduationCapIcon },
+        ]
+    },
+    {
+        title: 'System',
+        items: [
+            { path: 'profile', labelKey: 'dashboard.farmer.nav.profile', icon: UserCircleIcon },
+            { path: 'about', labelKey: 'dashboard.farmer.nav.about', icon: InfoIcon },
+        ]
+    }
+];
 
-const FarmerDashboard: React.FC<FarmerDashboardProps> = ({ onLogout }) => {
+const FarmerDashboard: React.FC = () => {
     const { t } = useTranslation();
-    const [activeFeature, setActiveFeature] = useState<Feature>('dashboard');
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { logout } = useAuth();
+    
+    // Extract current section from URL
+    const currentPath = location.pathname.split('/').pop() || 'dashboard';
+
     const [isCartOpen, setCartOpen] = useState(false);
     const [isWishlistOpen, setWishlistOpen] = useState(false);
     const [isOrdersOpen, setOrdersOpen] = useState(false);
     const [isNotificationsOpen, setNotificationsOpen] = useState(false);
+    const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
+
     
-    const navRef = useRef<HTMLDivElement>(null);
-    const [showLeftArrow, setShowLeftArrow] = useState(false);
-    const [showRightArrow, setShowRightArrow] = useState(false);
-
-    const checkScrollButtons = () => {
-        if (navRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = navRef.current;
-            setShowLeftArrow(scrollLeft > 1);
-            setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1);
-        }
-    };
-
-    useEffect(() => {
-        const navElement = navRef.current;
-        if (navElement) {
-            checkScrollButtons();
-            navElement.addEventListener('scroll', checkScrollButtons);
-            window.addEventListener('resize', checkScrollButtons);
-            
-            const timer = setTimeout(checkScrollButtons, 100);
-
-            return () => {
-                navElement.removeEventListener('scroll', checkScrollButtons);
-                window.removeEventListener('resize', checkScrollButtons);
-                clearTimeout(timer);
-            };
-        }
-    }, []);
-    
-    useEffect(() => {
-        if (navRef.current) {
-            const activeButton = navRef.current.querySelector(`[data-feature-id="${activeFeature}"]`);
-            if (activeButton) {
-                activeButton.scrollIntoView({
-                    behavior: 'smooth',
-                    inline: 'center',
-                    block: 'nearest'
-                });
+    const currentTitle = useMemo(() => {
+        for (const section of navSections) {
+            const item = section.items.find(i => i.path === currentPath);
+            if (item) {
+                // Return translated key or fallback to the key itself if no translation found
+                const translated = t(item.labelKey);
+                return translated === item.labelKey ? item.labelKey : translated;
             }
         }
-    }, [activeFeature]);
+        return t('dashboard.farmer.title');
+    }, [currentPath, t]);
 
-    const handleScroll = (direction: 'left' | 'right') => {
-        if (navRef.current) {
-            const scrollAmount = navRef.current.clientWidth * 0.7;
-            navRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        }
+    const handleLogout = () => {
+        logout();
+        navigate('/');
     };
-
-    const renderFeature = () => {
-        switch (activeFeature) {
-            case 'dashboard': return <DashboardHome onNavigate={setActiveFeature} />;
-            case 'pestDetector': return <PestDetector />;
-            case 'soilAnalysis': return <SoilAnalysis />;
-            case 'marketplace': return <Marketplace />;
-            case 'mandiLocator': return <MandiLocator />;
-            case 'animalHusbandry': return <AnimalHusbandry />;
-            case 'cropMonitoring': return <CropMonitoring />;
-            case 'weather': return <Weather />;
-            case 'chatbot': return <Chatbot />;
-            case 'schemes': return <GovernmentSchemes />;
-            case 'aiVet': return <AIVetAssistant />;
-            case 'vetConnect': return <VetConnect />;
-            case 'expertHelpline': return <ExpertHelpline />;
-            case 'profile': return <FarmerProfile />;
-            case 'portfolio': return <FarmerPortfolio />;
-            default: return <DashboardHome onNavigate={setActiveFeature} />;
-        }
-    };
-    
-    const navItems = [
-        { id: 'dashboard', label: t('dashboard.farmer.nav.dashboard'), icon: <LayoutGridIcon className="w-5 h-5" /> },
-        { id: 'pestDetector', label: t('dashboard.farmer.nav.pestDetector'), icon: <LeafIcon className="w-5 h-5" /> },
-        { id: 'soilAnalysis', label: t('dashboard.farmer.nav.soilAnalysis'), icon: <FlaskConicalIcon className="w-5 h-5" /> },
-        { id: 'marketplace', label: t('dashboard.farmer.nav.marketplace'), icon: <ShoppingCartIcon className="w-5 h-5" /> },
-        { id: 'mandiLocator', label: t('dashboard.farmer.nav.mandiLocator'), icon: <MapPinIcon className="w-5 h-5" /> },
-        { id: 'animalHusbandry', label: t('dashboard.farmer.nav.animalHusbandry'), icon: <PawPrintIcon className="w-5 h-5" /> },
-        { id: 'aiVet', label: t('dashboard.farmer.nav.aiVet'), icon: <HeartIcon className="w-5 h-5" /> },
-        { id: 'vetConnect', label: t('dashboard.farmer.nav.vetConnect'), icon: <ShieldCheckIcon className="w-5 h-5" /> },
-        { id: 'expertHelpline', label: t('dashboard.farmer.nav.expertHelpline'), icon: <HeadsetIcon className="w-5 h-5" /> },
-        { id: 'cropMonitoring', label: t('dashboard.farmer.nav.cropMonitoring'), icon: <ActivityIcon className="w-5 h-5" /> },
-        { id: 'weather', label: t('dashboard.farmer.nav.weather'), icon: <SunIcon className="w-5 h-5" /> },
-        { id: 'schemes', label: t('dashboard.farmer.nav.schemes'), icon: <ShieldCheckIcon className="w-5 h-5" /> },
-        { id: 'chatbot', label: t('dashboard.farmer.nav.chatbot'), icon: <BotIcon className="w-5 h-5" /> },
-        { id: 'portfolio', label: t('dashboard.farmer.nav.portfolio'), icon: <GlobeIcon className="w-5 h-5" /> },
-    ];
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-sans">
-            <Header 
-                onCartClick={() => setCartOpen(true)}
-                onWishlistClick={() => setWishlistOpen(true)}
-                onOrdersClick={() => setOrdersOpen(true)}
-                onNotificationsClick={() => setNotificationsOpen(true)}
-                onProfileClick={() => setActiveFeature('profile')}
-                onLogout={onLogout}
-                title={t('dashboard.farmer.title')}
-            />
-            
-            <nav className="bg-card-light dark:bg-card-dark border-b border-border-light dark:border-border-dark sticky top-16 z-10">
-                <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-                    <div className="relative flex items-center">
-                         <div ref={navRef} className="flex space-x-2 overflow-x-auto py-2 scrollbar-hide">
-                            {navItems.map(item => (
-                                <button
-                                    key={item.id}
-                                    data-feature-id={item.id}
-                                    onClick={() => setActiveFeature(item.id as Feature)}
-                                    className={`flex-shrink-0 flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
-                                        activeFeature === item.id
-                                        ? 'bg-primary/10 text-primary dark:text-primary-light'
-                                        : 'hover:bg-gray-100 dark:hover:bg-slate-700'
-                                    }`}
-                                >
-                                    {item.icon}
-                                    <span>{item.label}</span>
-                                </button>
-                            ))}
+        <div className="flex h-screen bg-gray-50 dark:bg-black text-text-light dark:text-text-dark font-sans overflow-hidden">
+            {/* Sidebar */}
+            <aside className="w-72 flex-shrink-0 bg-white dark:bg-[#0b1120] border-r border-gray-200 dark:border-white/10 flex flex-col hidden md:flex z-30 shadow-lg">
+                <div className="h-20 flex items-center px-6 border-b border-gray-100 dark:border-white/5">
+                     <Logo scale={1.1} />
+                </div>
+                
+                <nav className="flex-grow overflow-y-auto p-4 space-y-8 custom-scrollbar">
+                    {navSections.map((section, index) => (
+                        <div key={index}>
+                            <h3 className={`px-4 mb-3 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500`}>
+                                {section.title}
+                            </h3>
+                            <div className="space-y-1">
+                                {section.items.map((item) => {
+                                    const Icon = item.icon;
+                                    const isActive = currentPath === item.path;
+                                    return (
+                                        <button
+                                            key={item.path}
+                                            onClick={() => navigate(item.path)}
+                                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group relative ${
+                                                isActive 
+                                                ? 'text-white shadow-md shadow-primary/30' 
+                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 border-l-4 border-transparent'
+                                            }`}
+                                        >
+                                            {isActive && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-primary to-green-600 rounded-xl -z-10"></div>
+                                            )}
+                                            <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-primary'}`} />
+                                            <span>{t(item.labelKey)}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className={`absolute top-0 left-0 h-full w-8 bg-gradient-to-r from-card-light dark:from-card-dark pointer-events-none transition-opacity ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`}></div>
-                        <div className={`absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-card-light dark:from-card-dark pointer-events-none transition-opacity ${showRightArrow ? 'opacity-100' : 'opacity-0'}`}></div>
-
-                        <button 
-                            onClick={() => handleScroll('left')}
-                            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-200 dark:hover:bg-slate-700 border border-border-light dark:border-border-dark transition-opacity ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`}
-                            aria-label="Scroll left"
-                        >
-                            <ChevronLeftIcon className="w-5 h-5" />
-                        </button>
-                         <button 
-                            onClick={() => handleScroll('right')}
-                            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-200 dark:hover:bg-slate-700 border border-border-light dark:border-border-dark transition-opacity ${showRightArrow ? 'opacity-100' : 'opacity-0'}`}
-                            aria-label="Scroll right"
-                        >
-                            <ChevronRightIcon className="w-5 h-5" />
-                        </button>
+                    ))}
+                </nav>
+                
+                <div className="p-4 border-t border-gray-200 dark:border-white/5">
+                    <div className="flex items-center p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-green-700 flex items-center justify-center text-white font-bold mr-3 shadow-sm">
+                            FM
+                        </div>
+                        <div className="overflow-hidden">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">Farmer Mode</p>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <p className="text-xs text-green-600 dark:text-green-400 truncate font-medium">Online</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </nav>
+            </aside>
+            
+            {/* Main Content Wrapper */}
+            <div className="flex-1 flex flex-col min-w-0 relative bg-gray-50 dark:bg-black">
+                <Header 
+                    onCartClick={() => setCartOpen(true)}
+                    onWishlistClick={() => setWishlistOpen(true)}
+                    onOrdersClick={() => setOrdersOpen(true)}
+                    onNotificationsClick={() => setNotificationsOpen(true)}
+                    onProfileClick={() => navigate('profile')}
+                    onLogout={handleLogout}
+                    title={currentTitle}
+                />
+                
+                {/* Scrollable Content Area */}
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth relative z-0">
+                     <Outlet />
+                </main>
 
-            <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
-                {renderFeature()}
-            </main>
+                {/* Floating AI Voice Assistant Button */}
+                <div className="absolute bottom-6 right-6 z-50">
+                    <button 
+                        onClick={() => setIsVoiceAssistantOpen(true)}
+                        className="w-16 h-16 bg-gradient-to-r from-primary to-green-600 rounded-full shadow-xl flex items-center justify-center text-white hover:scale-110 transition-transform duration-300 animate-bounce-slow relative group"
+                        aria-label="Open Voice Assistant"
+                    >
+                        <div className="absolute inset-0 rounded-full bg-white opacity-20 animate-ping"></div>
+                        <MicIcon className="w-8 h-8 relative z-10" />
+                        <span className="absolute -top-10 scale-0 group-hover:scale-100 transition-transform bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                            Speak to Raitha Mitra
+                        </span>
+                    </button>
+                </div>
+            </div>
             
             <Cart isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
             <WishlistModal isOpen={isWishlistOpen} onClose={() => setWishlistOpen(false)} />
             <OrderHistoryModal isOpen={isOrdersOpen} onClose={() => setOrdersOpen(false)} />
             <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setNotificationsOpen(false)} />
-
-            <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+            <VoiceAssistantModal isOpen={isVoiceAssistantOpen} onClose={() => setIsVoiceAssistantOpen(false)} />
         </div>
     );
 };
