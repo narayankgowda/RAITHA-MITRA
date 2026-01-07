@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { cropCycleData, Crop } from '../data/cropCycleData';
 import CropCycleCard from './CropCycleCard';
@@ -98,7 +97,7 @@ const CropMonitoring: React.FC = () => {
             currentStageIndex: 0,
             family: 'Unknown',
             idealClimate: 'Varied',
-            imageUrl: 'https://storage.googleapis.com/aistudio-marketplace-public-test-assets/farm_cover.jpg',
+            imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=1000&auto=format&fit=crop',
             description: 'New Field',
             coordinates: { lat: 15.3647, lng: 75.1240 },
             stages: [

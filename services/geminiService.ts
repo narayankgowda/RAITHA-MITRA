@@ -7,8 +7,8 @@ let aiInstance: GoogleGenAI | null = null;
 const getAi = (): GoogleGenAI => {
     if (!aiInstance) {
         const apiKey = process.env.API_KEY;
-        if (!apiKey || apiKey.includes('your_gemini_api_key')) {
-            throw new Error("Invalid API Key. Please update your .env file with your actual Gemini API Key.");
+        if (!apiKey) {
+            throw new Error("Gemini API Key is missing. Please ensure API_KEY is set in your .env file and restart your dev server.");
         }
         aiInstance = new GoogleGenAI({ apiKey });
     }
@@ -16,6 +16,11 @@ const getAi = (): GoogleGenAI => {
 };
 
 const ANALYSIS_ERROR_MESSAGE = "Analysis failed. Please try again.";
+
+// Helper to clean JSON strings from the model
+function cleanJson(text: string): string {
+    return text.replace(/```json/g, '').replace(/```/g, '').trim();
+}
 
 // Centralized error handler
 const handleApiError = (error: unknown, context: string): Error => {
@@ -31,6 +36,8 @@ const handleApiError = (error: unknown, context: string): Error => {
             message = 'Request timed out. Check connection.';
         } else if (error.message === ANALYSIS_ERROR_MESSAGE) {
             message = error.message;
+        } else if (error.message.includes('JSON')) {
+            message = 'Failed to process AI response. Please try again.';
         } else {
             message = `Service error: ${error.message}`;
         }
@@ -104,7 +111,7 @@ export const analyzeCropImage = async (
             },
         });
 
-        const jsonText = response.text?.trim() || "{}";
+        const jsonText = cleanJson(response.text || "{}");
         const result = JSON.parse(jsonText);
 
         return { 
@@ -161,7 +168,7 @@ export const analyzeSoilData = async (
             }
         });
         
-        const jsonText = response.text?.trim() || "{}";
+        const jsonText = cleanJson(response.text || "{}");
         return JSON.parse(jsonText) as SoilAnalysisResult;
     } catch (error) {
         throw handleApiError(error, "analyze soil data");
@@ -204,7 +211,7 @@ export const analyzeSoilReportImage = async (base64: string, mimeType: string): 
             }
         });
 
-        const jsonText = response.text?.trim() || "{}";
+        const jsonText = cleanJson(response.text || "{}");
         return JSON.parse(jsonText) as SoilAnalysisResult;
     } catch (error) {
         throw handleApiError(error, "analyze soil report image");
@@ -260,8 +267,6 @@ export const getChatbotResponse = async (history: {sender: 'user' | 'bot', text:
         throw handleApiError(error, 'get chatbot response');
     }
 };
-
-// --- NEW COMMUNITY & ACADEMY HELPERS ---
 
 export const getCommunitySummary = async (postTitle: string, postContent: string, comments: string[]): Promise<string> => {
     const prompt = [
@@ -361,7 +366,7 @@ export const getWeatherForecast = async (latitude: number, longitude: number): P
             }
         });
         
-        const jsonText = response.text?.trim() || "{}";
+        const jsonText = cleanJson(response.text || "{}");
         const weatherData = JSON.parse(jsonText) as WeatherData;
         
         if (weatherData.hourly && weatherData.hourly.length > 0 && weatherData.hourly[0].time.toLowerCase() !== 'now') {
@@ -407,7 +412,7 @@ export const generateWeatherAlerts = async (weatherData: WeatherData): Promise<A
                 }
             }
         });
-        const jsonText = response.text?.trim() || "[]";
+        const jsonText = cleanJson(response.text || "[]");
         return JSON.parse(jsonText);
     } catch (error) {
         return [{ title: "General Advice", severity: "info", description: "Monitor local conditions." }];
@@ -433,11 +438,13 @@ export const generateCropRotationPlan = async (details: { currentCrop: string; f
         const ai = getAi();
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
-            contents: `Generate a 3-year crop rotation sequence (approx 5-6 crops) starting AFTER ${details.currentCrop} in ${details.season} season for ${details.soilType} soil.
-            Focus on soil health, nitrogen fixation, and pest cycle breaking.
+            contents: `Generate a 3-year crop rotation sequence (approx 5-6 crops total) starting AFTER ${details.currentCrop} in ${details.season} season for ${details.soilType} soil.
+            Focus on soil health, nitrogen fixation, and pest cycle breaking. 
+            Keep descriptions extremely brief to avoid long output.
             Return strictly JSON.`,
             config: {
                 responseMimeType: 'application/json',
+                maxOutputTokens: 2000,
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -460,7 +467,7 @@ export const generateCropRotationPlan = async (details: { currentCrop: string; f
                 }
             }
         });
-        const jsonText = response.text?.trim() || "{}";
+        const jsonText = cleanJson(response.text || "{}");
         return JSON.parse(jsonText) as RotationPlan;
     } catch (error) {
         throw handleApiError(error, "generate crop rotation");
@@ -488,9 +495,11 @@ export const predictCropYield = async (formData: { crop: string; area: string; s
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: `Predict yield for ${formData.crop} (${formData.variety || 'Standard'}), ${formData.area} acres, ${formData.soil}, ${formData.irrigation}, Fertilizer: ${formData.fertilizer || 'Standard NPK'}.
-            Provide 3 scenarios (numbers only for scenarios). Revenue in INR based on current Indian market rates. JSON Output.`,
+            Provide 3 scenarios (numbers only for scenarios). Revenue in INR based on current Indian market rates. JSON Output. 
+            Keep recommendations very short.`,
             config: {
                 responseMimeType: 'application/json',
+                maxOutputTokens: 1500,
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -513,7 +522,7 @@ export const predictCropYield = async (formData: { crop: string; area: string; s
                 }
             },
         });
-        const jsonText = response.text?.trim() || "{}";
+        const jsonText = cleanJson(response.text || "{}");
         return JSON.parse(jsonText) as YieldPrediction;
     } catch (error) {
         throw handleApiError(error, "predict crop yield");

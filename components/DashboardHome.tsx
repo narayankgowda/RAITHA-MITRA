@@ -8,7 +8,7 @@ import {
     ThermometerIcon, LayersIcon, WindIcon, AlertTriangleIcon, 
     ChevronRightIcon, CloudSunIcon, DollarSignIcon, MicroscopeIcon, 
     ShovelIcon, ShoppingCartIcon, SproutIcon, CloudRainIcon,
-    BarChart2Icon
+    BarChart2Icon, ClockIcon, NavigationIcon
 } from './icons';
 import { mockWeatherData } from '../data/weatherData';
 import { cropCycleData } from '../data/cropCycleData';
@@ -18,7 +18,6 @@ import { liveMandiPriceData } from '../data/liveMandiPriceData';
 
 // --- Sub-Components ---
 
-// 1. 3D Crop Card
 const DashboardCropCard: React.FC<{ crop: any; onClick: () => void }> = ({ crop, onClick }) => (
     <div onClick={onClick} className="min-w-[150px] relative group cursor-pointer">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 rounded-[2rem] z-10 pointer-events-none group-hover:opacity-80 transition-opacity"></div>
@@ -48,10 +47,8 @@ const DashboardCropCard: React.FC<{ crop: any; onClick: () => void }> = ({ crop,
     </div>
 );
 
-// 2. Weather Hero Widget
 const WeatherHero = ({ weather, navigate }: any) => (
     <div className="relative overflow-hidden bg-gradient-to-br from-[#4facfe] to-[#00f2fe] dark:from-blue-700 dark:to-cyan-600 rounded-[2.5rem] shadow-2xl p-8 text-white h-full group cursor-pointer" onClick={() => navigate('../weather')}>
-        {/* Background Decorations */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/20 to-transparent"></div>
         
@@ -92,6 +89,117 @@ const WeatherHero = ({ weather, navigate }: any) => (
     </div>
 );
 
+const FieldMonitorHero: React.FC<{ navigate: (p: string) => void }> = ({ navigate }) => {
+    const [coords, setCoords] = useState({ x: 13.0072, y: 76.1032 });
+    
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCoords(prev => ({
+                x: prev.x + (Math.random() - 0.5) * 0.0001,
+                y: prev.y + (Math.random() - 0.5) * 0.0001
+            }));
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const statusItems = [
+        { label: 'Moisture', val: '64%', status: 'Optimal', icon: DropletsIcon, colorClass: 'text-blue-400 bg-blue-500/20' },
+        { label: 'NDVI Score', val: '0.82', status: 'Healthy', icon: LayersIcon, colorClass: 'text-green-400 bg-green-500/20' },
+        { label: 'Biomass', val: '8.4t', status: 'On Track', icon: SproutIcon, colorClass: 'text-emerald-400 bg-emerald-500/20' },
+    ];
+
+    return (
+        <div 
+            className="relative w-full h-[24rem] rounded-[3rem] overflow-hidden shadow-2xl group cursor-pointer border-4 border-white dark:border-[#1e293b] ring-1 ring-gray-200 dark:ring-gray-700 bg-slate-900"
+            onClick={() => navigate('../crop-monitoring')}
+        >
+            {/* Background Image with Ken Burns Effect */}
+            <img 
+                src="https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=2000&auto=format&fit=crop" 
+                alt="Field Aerial" 
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110 opacity-70"
+            />
+            
+            {/* Dynamic Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/40"></div>
+            
+            {/* Scan Grid Effect */}
+            <div className="absolute inset-0 opacity-20 pointer-events-none" 
+                 style={{ backgroundImage: 'radial-gradient(circle, #22c55e 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
+            </div>
+            
+            {/* Moving Laser Line */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="w-full h-[2px] bg-primary/50 shadow-[0_0_15px_#22c55e] absolute animate-scan-line"></div>
+            </div>
+
+            {/* UI: Top Status Bar */}
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-20">
+                <div className="bg-black/60 backdrop-blur-xl border border-white/20 p-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]"></div>
+                    <div className="font-mono">
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest leading-none mb-1">Live Satellite Link</p>
+                        <p className="text-xs font-bold text-white uppercase">{coords.x.toFixed(4)}°N, {coords.y.toFixed(4)}°E</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2">
+                    <div className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-widest flex items-center shadow-lg">
+                        <ActivityIcon className="w-3 h-3 mr-2 animate-spin-slow"/> Monitoring Active
+                    </div>
+                    <p className="text-[10px] font-mono text-white/50 bg-black/40 px-2 py-1 rounded-md">UTC {new Date().toLocaleTimeString()}</p>
+                </div>
+            </div>
+
+            {/* UI: Interactive Pulse Points */}
+            <div className="absolute top-1/2 left-1/3 group/point">
+                <div className="relative">
+                    <div className="w-6 h-6 bg-white/20 rounded-full animate-ping absolute -inset-1"></div>
+                    <div className="w-4 h-4 bg-primary rounded-full border-2 border-white relative z-10 shadow-lg"></div>
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl w-48 opacity-0 group-hover/point:opacity-100 transition-all transform scale-90 group-hover/point:scale-100 pointer-events-none">
+                        <p className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Soil Node #04</p>
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs font-bold text-white"><span>Nitrogen</span><span className="text-green-400">High</span></div>
+                            <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden"><div className="bg-green-500 h-full w-4/5"></div></div>
+                            <div className="flex justify-between text-xs font-bold text-white pt-1"><span>PH Level</span><span className="text-yellow-400">6.8</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* UI: Bottom Glass Metrics Rack */}
+            <div className="absolute bottom-8 left-8 right-8 flex gap-4 overflow-x-auto no-scrollbar pt-4">
+                {statusItems.map((item, i) => {
+                    const Icon = item.icon;
+                    return (
+                        <div key={i} className="flex-1 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2rem] text-white min-w-[140px] hover:bg-white/10 transition-all border-b-4 border-b-primary/30 group/card">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover/card:scale-110 ${item.colorClass}`}>
+                                <Icon className="w-5 h-5"/>
+                            </div>
+                            <p className="text-3xl font-black tracking-tighter mb-0.5">{item.val}</p>
+                            <div className="flex justify-between items-center">
+                                <p className="text-[9px] uppercase font-black text-gray-400 tracking-wider">{item.label}</p>
+                                <span className="text-[8px] font-black text-primary uppercase">{item.status}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            
+            <style>{`
+                @keyframes scan-line {
+                    0% { top: 0%; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { top: 100%; opacity: 0; }
+                }
+                .animate-scan-line { animation: scan-line 4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+                .animate-spin-slow { animation: spin 8s linear infinite; }
+            `}</style>
+        </div>
+    );
+};
+
 const DashboardHome: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -116,85 +224,15 @@ const DashboardHome: React.FC = () => {
     const activeCrops = cropCycleData.slice(0, 5);
     const marketHighlights = liveMandiPriceData.slice(0, 3);
 
-    // 3. Drone Monitor Component
-    const FieldMonitorHero = () => (
-        <div className="relative w-full h-[22rem] rounded-[2.5rem] overflow-hidden shadow-2xl group cursor-pointer border-4 border-white dark:border-[#1e293b] ring-1 ring-gray-200 dark:ring-gray-700" onClick={() => navigate('../crop-monitoring')}>
-            <img 
-                src="https://images.unsplash.com/photo-1625246333195-5519a12860ca?q=80&w=1000&auto=format&fit=crop" 
-                alt="Field Monitor" 
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30"></div>
-            
-            {/* AR Overlays */}
-            <div className="absolute top-8 left-8 bg-black/60 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-2xl flex items-center gap-3 shadow-lg">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]"></div>
-                <div>
-                    <p className="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Live Drone Feed</p>
-                    <p className="text-sm font-bold">North Field • Sector 4</p>
-                </div>
-            </div>
-
-            {/* Scan Lines Animation */}
-            <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(transparent_0%,_rgba(50,255,50,0.4)_50%,_transparent_100%)] bg-[length:100%_200%] animate-scan"></div>
-
-            {/* Floating Data Points */}
-            <div className="absolute top-1/3 left-1/3 group/marker">
-                <div className="relative">
-                    <div className="w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-ping absolute"></div>
-                    <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white relative z-10"></div>
-                    {/* Tooltip */}
-                    <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-black/80 backdrop-blur-md p-3 rounded-xl border border-white/20 shadow-xl opacity-0 group-hover/marker:opacity-100 transition-opacity w-40">
-                        <p className="text-xs font-bold text-gray-500 uppercase mb-1">Soil Analysis</p>
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Nitrogen</span>
-                            <span className="text-xs font-bold text-green-500">Good</span>
-                        </div>
-                         <div className="w-full bg-gray-200 h-1 mt-1 rounded-full overflow-hidden">
-                            <div className="bg-green-500 h-full w-[80%]"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Bottom Glass Cards */}
-            <div className="absolute bottom-6 left-6 right-6 flex gap-4 overflow-x-auto no-scrollbar">
-                {[
-                    { label: 'Moisture', val: '62%', status: 'Optimal', color: 'blue' },
-                    { label: 'Growth', val: 'V3 Stage', status: '+2 Days Ahead', color: 'green' },
-                    { label: 'Pest Risk', val: 'Low', status: 'Clear', color: 'yellow' },
-                ].map((item, i) => (
-                    <div key={i} className="flex-1 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl text-white min-w-[120px] hover:bg-white/20 transition-colors">
-                        <div className={`w-8 h-8 rounded-full bg-${item.color}-500/20 flex items-center justify-center mb-2`}>
-                            {i===0 && <DropletsIcon className={`w-4 h-4 text-${item.color}-400`}/>}
-                            {i===1 && <LayersIcon className={`w-4 h-4 text-${item.color}-400`}/>}
-                            {i===2 && <MicroscopeIcon className={`w-4 h-4 text-${item.color}-400`}/>}
-                        </div>
-                        <p className="text-2xl font-bold tracking-tight">{item.val}</p>
-                        <p className="text-[10px] uppercase font-bold text-gray-300 mt-1">{item.label}</p>
-                    </div>
-                ))}
-            </div>
-            
-            <style>{`
-                @keyframes scan {
-                    0% { background-position: 0% -100%; }
-                    100% { background-position: 0% 200%; }
-                }
-                .animate-scan { animation: scan 3s linear infinite; }
-            `}</style>
-        </div>
-    );
-
     const StatPill = ({ label, value, icon: Icon, color, onClick }: any) => (
-        <button onClick={onClick} className="bg-white dark:bg-[#1e293b] p-4 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 flex flex-col items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-1 transition-all group h-full relative overflow-hidden">
+        <button onClick={onClick} className="bg-white dark:bg-[#1e293b] p-4 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 flex flex-col items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-1 transition-all group h-full relative overflow-hidden text-center w-full">
             <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 transition-transform duration-500`}>
                  <Icon className={`w-16 h-16 ${color.replace('bg-', 'text-')}`} />
             </div>
             <div className={`p-3.5 rounded-full ${color} text-white shadow-md group-hover:scale-110 transition-transform relative z-10`}>
                 <Icon className="w-5 h-5" />
             </div>
-            <div className="text-center relative z-10">
+            <div className="relative z-10">
                 <h3 className="text-xl font-black text-gray-900 dark:text-white">{value}</h3>
                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{label}</p>
             </div>
@@ -206,7 +244,7 @@ const DashboardHome: React.FC = () => {
             onClick={onClick}
             className="flex items-center w-full p-3 rounded-2xl bg-gray-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-[#1e293b] border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-md transition-all group"
         >
-            <div className={`p-2.5 rounded-xl ${color} bg-opacity-10 text-${color.split('-')[1]}-600 dark:text-${color.split('-')[1]}-400 mr-4 group-hover:scale-110 transition-transform`}>
+            <div className={`p-2.5 rounded-xl ${color} bg-opacity-10 text-current mr-4 group-hover:scale-110 transition-transform`}>
                 <Icon className="w-5 h-5"/>
             </div>
             <span className="font-bold text-gray-700 dark:text-gray-200 text-sm flex-grow text-left">{label}</span>
@@ -219,7 +257,6 @@ const DashboardHome: React.FC = () => {
     return (
         <div className="max-w-[1400px] mx-auto pb-20 font-sans space-y-8 animate-fadeIn px-2 md:px-6">
             
-            {/* 1. Header & Greeting */}
             <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-4">
                 <div>
                     <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white leading-tight">
@@ -238,16 +275,12 @@ const DashboardHome: React.FC = () => {
                 </div>
             </div>
 
-            {/* 2. Primary Dashboard Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                {/* LEFT COLUMN (8/12) */}
                 <div className="lg:col-span-8 space-y-8">
-                    
-                    {/* Top Row: Weather & Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-72">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:h-72">
                         <WeatherHero weather={currentWeather} navigate={navigate} />
-                        <div className="grid grid-cols-2 gap-4 h-full">
+                        <div className="grid grid-cols-2 gap-4">
                             <StatPill label="My Crops" value={cropCycleData.length} icon={LeafIcon} color="bg-green-500" onClick={() => navigate('../crop-monitoring')} />
                             <StatPill label="Tasks Due" value="3" icon={CheckCircleIcon} color="bg-red-500" onClick={() => {}} />
                             <StatPill label="Expenses" value="₹2.5k" icon={DollarSignIcon} color="bg-purple-500" onClick={() => navigate('../expense-tracker')} />
@@ -255,10 +288,8 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Field Monitor */}
-                    <FieldMonitorHero />
+                    <FieldMonitorHero navigate={navigate} />
 
-                    {/* Active Crops Rail */}
                     <div>
                         <div className="flex justify-between items-center mb-4 px-1">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
@@ -286,7 +317,6 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Yield Analytics */}
                     <div className="bg-white dark:bg-[#1e293b] p-8 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full blur-3xl pointer-events-none"></div>
                         <div className="flex justify-between items-center mb-8 relative z-10">
@@ -318,10 +348,8 @@ const DashboardHome: React.FC = () => {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN (4/12) */}
                 <div className="lg:col-span-4 space-y-8">
                     
-                    {/* Market Widget */}
                     <div className="bg-white dark:bg-[#1e293b] p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center">
@@ -345,7 +373,6 @@ const DashboardHome: React.FC = () => {
                                     </div>
                                     <div className="flex items-end justify-between">
                                         <p className="text-xl font-black text-gray-900 dark:text-white tracking-tight">₹{m.modal_price}</p>
-                                        {/* Mini Sparkline SVG */}
                                         <svg width="60" height="20" viewBox="0 0 60 20" className="opacity-50">
                                             <path d={`M 0,10 Q 15,${m.forecast.trend === 'up' ? 0 : 20} 30,10 T 60,${m.forecast.trend === 'up' ? 0 : 20}`} fill="none" stroke={m.forecast.trend === 'up' ? '#16a34a' : '#ef4444'} strokeWidth="2" />
                                         </svg>
@@ -355,7 +382,6 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Quick Tools Dock */}
                     <div className="bg-white dark:bg-[#1e293b] p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
                         <h3 className="font-bold text-sm text-gray-400 uppercase tracking-widest mb-4 px-2">Quick Actions</h3>
                         <div className="space-y-2">
@@ -367,7 +393,6 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Storage Risk Card */}
                     <div className="relative bg-[#111] rounded-[2rem] p-8 text-white overflow-hidden shadow-2xl group">
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 mb-2 text-red-400">
@@ -390,8 +415,6 @@ const DashboardHome: React.FC = () => {
                                 <span className="text-[10px] bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg font-bold border border-red-500/30">Action Required</span>
                             </div>
                         </div>
-                        
-                        {/* Background Effect */}
                         <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl group-hover:bg-yellow-500/20 transition-all duration-500"></div>
                     </div>
 

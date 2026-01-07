@@ -26,7 +26,7 @@ const optimalRanges: { [key: string]: { low: number; optimal: number; type: 'low
 const cropImages: { [key: string]: string } = {
     'Rice': 'https://spanishboosting.com/wp-content/uploads/2024/04/organic-rice.jpg',
     'Paddy': 'https://i0.wp.com/asombarta.com/wp-content/uploads/2025/03/paddy-1-scaled.jpg?fit=2560%2C1707&ssl=1',
-    'Wheat': 'https://5.imimg.com/data5/SELLER/Default/2025/6/517343634/ER/PQ/CD/240472965/whole-wheat-grain.jpeg',
+    'Wheat': 'https://engrain.us/wp-content/uploads/2023/05/shutterstock_488899324-1080x675.jpg',
     // ... (rest of mapping same as before)
 };
 
