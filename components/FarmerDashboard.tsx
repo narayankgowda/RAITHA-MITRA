@@ -66,7 +66,7 @@ const navSections: NavSection[] = [
         ]
     },
     {
-        title: 'Help & Services',
+        title: 'Services & Knowledge',
         items: [
             { path: 'schemes', labelKey: 'dashboard.farmer.nav.schemes', icon: LandmarkIcon },
             { path: 'vet-connect', labelKey: 'dashboard.farmer.nav.vetConnect', icon: BriefcaseMedicalIcon },

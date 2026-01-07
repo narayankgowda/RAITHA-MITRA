@@ -1,3 +1,4 @@
+
 {
   "header": {
     "language": "ಭಾಷೆ"
@@ -16,7 +17,6 @@
       "title": "ರೈತ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
       "nav": {
         "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
-        "community": "ಸಮುದಾಯ ಮತ್ತು ವೇದಿಕೆ",
         "pestDetector": "ಕೀಟ ಪತ್ತೆಕಾರಕ",
         "soilAnalysis": "ಮಣ್ಣಿನ ವಿಶ್ಲೇಷಣೆ",
         "yieldPredictor": "ಇಳುವರಿ ಮುನ್ಸೂಚಕ",

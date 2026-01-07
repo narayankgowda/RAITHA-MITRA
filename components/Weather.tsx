@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WeatherData, mockWeatherData } from '../data/weatherData';
 import { getRealWeatherForecast } from '../services/weatherService';
 import { getWeatherIcon } from '../utils/weatherUtils';
@@ -199,6 +200,7 @@ const TrendChart = ({ data }: { data: any[] }) => {
 };
 
 const Weather: React.FC = () => {
+    const navigate = useNavigate();
     const isOnline = useNetworkStatus();
     const [weather, setWeather] = useState<WeatherData>(mockWeatherData);
     const [isLoading, setIsLoading] = useState(false);
@@ -248,9 +250,17 @@ const Weather: React.FC = () => {
                                     </div>
                                     <p className="text-sm text-gray-400 mt-1">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                                 </div>
-                                <button onClick={fetchWeather} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
-                                    <RefreshCwIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`}/>
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <button 
+                                        onClick={() => navigate('../live-prices')} 
+                                        className="hidden md:flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all transform active:scale-95"
+                                    >
+                                        <MapPinIcon className="w-4 h-4"/> View Map
+                                    </button>
+                                    <button onClick={fetchWeather} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+                                        <RefreshCwIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`}/>
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-6 mb-8">
@@ -300,7 +310,7 @@ const Weather: React.FC = () => {
                                         <p className="text-xs font-bold text-gray-300">Live Radar</p>
                                         <p className="text-xs text-gray-500">Precipitation & Clouds</p>
                                     </div>
-                                    <span className="bg-white text-black text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">Open Map</span>
+                                    <span className="bg-white text-black text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg" onClick={() => navigate('../live-prices')}>Open Map</span>
                                 </div>
                             </div>
                         </div>

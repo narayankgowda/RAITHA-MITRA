@@ -1,3 +1,4 @@
+
 {
   "common": {
     "submit": "Submit",
@@ -35,7 +36,6 @@
       "title": "Farmer Dashboard",
       "nav": {
         "dashboard": "Dashboard",
-        "community": "Community & Forums",
         "pestDetector": "Pest Detector",
         "soilAnalysis": "Soil Analysis",
         "yieldPredictor": "Yield Predictor",
